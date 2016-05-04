@@ -218,7 +218,7 @@ export default DumbComponent
 *Note:* PropTypes is explained in the massive code block at the top of the [React manual page for reusable components](http://facebook.github.io/react/docs/reusable-components.html).
 
 #### Example of a component using the class syntax
-*Note:* You should only need to use the [fancier ES6 class syntax](http://facebook.github.io/react/blog/2015/01/27/react-v0.13.0-beta-1.html#es6-classes) introduced in React 0.13 in special cases. There's a great write-up on the Babel blog on [the ES6 way to write React components](https://babeljs.io/blog/2015/06/07/react-on-es6-plus) but it doesn't cover the new syntax.
+*Note:* You should only need to use the [fancier ES6 class syntax](http://facebook.github.io/react/blog/2015/01/27/react-v0.13.0-beta-1.html#es6-classes) introduced in React 0.13 in special cases. There's a great write-up on the Babel blog on [the ES6 way to write React components](https://babeljs.io/blog/2015/06/07/react-on-es6-plus) but it doesn't cover the newer stateless functional component syntax.
 
 ```jsx
 import React, { Component, PropTypes } from 'react'
