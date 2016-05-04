@@ -386,6 +386,7 @@ Let's dig into what's going on here:
 
   ```js
   export const setVisibilityFilter = createAction(SET_VISIBILITY_FILTER)
+  
   console.log(setVisibilityFilter)
   /* -->
   function(payload) {
@@ -397,7 +398,8 @@ Let's dig into what's going on here:
 2. Action creators are easy to write by hand but using `createAction()` makes it even easier. By default the function creates an action creator that accepts a payload. The vast majority of the time this is all an action needs to do -- marry a payload to an action type. You can see that the `FilterLink` container sends the `ownProps.filter` payload to the `setVisibilityFilter(payload)` action creator. Compare this to [the long-hand version in the Todos example](https://github.com/reactjs/redux/blob/master/examples/todos/actions/index.js#L10-L15).
 
   ```js
-  const actionObject = setVisibilityFilter(payload)
+  const actionObject = setVisibilityFilter('some string')
+  
   console.log(actionObject)
   // --> { type: 'SET_VISIBILITY_FILTER', payload: 'some string' }
   ```
@@ -409,8 +411,9 @@ Let's dig into what's going on here:
   const mapDispatchToProps = (dispatch, ownProps) => {
     return {
       onClick: () => {
-        dispatch(setVisibilityFilter(ownProps.filter))
         // same as dispatch({ type: 'SET_VISIBILITY_FILTER', payload: ownProps.filter })
+        dispatch(setVisibilityFilter(ownProps.filter))
+        
       }
     }
   }
@@ -422,6 +425,7 @@ Let's dig into what's going on here:
   export const visibilityFilter = handleActions({
     [SET_VISIBILITY_FILTER]: (state, { payload }) => payload
   }, 'SHOW_ALL')
+
   console.log(visibilityFilter);
   /* -->
   function(state = 'SHOW_ALL', action) {
@@ -435,7 +439,7 @@ Let's dig into what's going on here:
 
 4. Our reducer for `SET_VISIBILITY_FILTER` accepts the `state` and the `action` and returns the new state. In this case the state for `visibilityFilter` is just a simple string. We're returning whatever was passed in as the payload as the new state. What's really subtle is that `combineReducers()` is what's pulling out the part of the state that the `visibilityFilter(state, action)` reducer cares about. This makes it possible for our reducer to simply return the `action.payload` as the new state instead of trying to store it in the `state.visibilityFilter` property. That's slightly confusing because where you store something in the state determines how read something. Not explicitly stating how our state is stored is actually a hidden power of Redux. The confusing part simply goes away once you've worked with it for a while.
 
-5. [`combineReducers()`](http://redux.js.org/docs/api/combineReducers.html) is a key part of how the Redux state can allow every component to share a state without causing massive collisions. A reducer is in charge of managing the state that's passed to it. `combineReducers()` calls each reducer it is passed with only the part of the state matching its key. In this case the reducer created by `combineReducers()` will pass `state.visibilityFilter` to the `visibilityFilter(state, action)` function. That clever tick ensures that the reducer won't accidentally overwrite the wrong part of the state. This is also the beginning of some of the magic reusability that Redux enables. Once you begin to master reducers you will be able to mix and match them all you want. The Redux authors refer to this as composability (it's what the [`compose()`](http://redux.js.org/docs/api/compose.html) function is for).
+5. [`combineReducers()`](http://redux.js.org/docs/api/combineReducers.html) is a key part of how the Redux store can allow every component to share a state without causing massive collisions. A reducer is in charge of managing the state that's passed to it. `combineReducers()` calls each reducer it is passed with only the part of the state matching its key. In this case the reducer created by `combineReducers()` will pass `state.visibilityFilter` to the `visibilityFilter(state, action)` function. That clever tick ensures that the reducer won't accidentally overwrite the wrong part of the state. This is also the beginning of some of the magic reusability that Redux enables. Once you begin to master reducers you will be able to mix and match them all you want. The Redux authors refer to this as composability (it's what the [`compose()`](http://redux.js.org/docs/api/compose.html) function is for).
 
   ```js
   // how we wrote it in the example above
