@@ -95,6 +95,12 @@ There's a good [write-up about "smart" and "dumb" components](https://medium.com
 
 *Note:* Everything we're showing here is from the [Todo example in the Redux manual](http://redux.js.org/docs/basics/ExampleTodoList.html)... although slightly rewritten to show how experienced developers apply those core concepts. You'll be less confused if you've studied that tutorial.
 
+#### Key ideas
+1. **Components should be simple templates** - A component uses React
+2. **Containers connect a component to the store** - A container uses React-Redux
+3. **The Store is immutable by convention** - The store is Redux
+4. **Modules control specific parts of the store** - A module is where you'll interact with middleware
+
 ## Components should be simple templates
 A dumb component is essentially a plain template. The code below should look familiar from the [`components/Link.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-link-js) file in the classic [React-Redux Todo example](https://github.com/reactjs/redux/tree/master/examples/todos). The redux manual calls it a [presentational component](http://redux.js.org/docs/basics/UsageWithReact.html#presentational-and-container-components) because all it does is render itself. It doesn't concern itself with were a variable came from.
 
@@ -328,11 +334,11 @@ It's important to go over the steps that are involved here.
   ```
 
 ### Containers in a nutshell
-A container maps values from the Redux store to properties on a React component. It reads from the store when a component loaded and after the store has been updated. In order to closely monitor when the store has been updated, Redux only allows you to dispatch actions. From a container it is not really possible to know what an action does because Redux separates that functionality into reducers.
+A container maps values from the Redux store to properties on a React component. It reads from the store when a component is first loaded and after the store has been updated. In order to closely monitor when the store has been updated, Redux only allows you to *dispatch* actions. From a container it is not really possible to know what an action does because Redux separates that functionality into *reducers*.
 
-If the concept of reducers seems totally foreign right now then you completely understand why smart components only dispatch actions and read from the store. Writing to the store is a different task.
+If the concept of reducers seems totally foreign right now then you completely understand why **smart components only dispatch actions and read from the store**. Writing to the store is a task for reducers.
 
-Containers are all about reading from the store and sending actions. Work is done elsewhere.
+Containers are all about reading from the store and sending actions to Redux.
 
 
 ## The Store is immutable by convention
@@ -343,10 +349,10 @@ There are a great number of fascinating advantages that surface from the simple 
 ### The Store is what you make of it
 Everything uses the same store. If you put something in the store a container can read from it. There are no restrictions of which part of the store you can write to or read from. At it's base level it might feel a little disorganized or even insecure. But the store is what you make of it. We'll see that people commonly organize things into modules and use some basic Redux functionality that makes things a little less scary.
 
-We'll see later that there are some conventions emerging about how to maintain data that you recieved from an API. Those patterns can be stamped into other parts of your app because of how well Redux encapulates functionality.
+We'll see later that there are some conventions emerging about how to maintain data that you recieved from an API. Those patterns can be stamped into other parts of your app because of how well Redux encapsulates functionality.
 
 ## Modules control specific parts of the store
-In the Redux world it's now popular to group Action Types, Action Creators and Reducers into a single file called a "module" or a "[duck](https://github.com/erikras/ducks-modular-redux)." It's actually fine to do it the old way if you want. Both methods make sense for different use cases. If you wanted to separate your constants, actions and reducers into separate files and folders you can feel free to do so but many people first starting out are finding it easier to lump them together.
+In the Redux world it's now popular to group *constants*, *action creators* and *reducers* into a single file called a "module" or a "[duck](https://github.com/erikras/ducks-modular-redux)." It's actually fine to do it the old way and break them into separate `constants/`, `actions/` and `reducers/` folders if you want. Both methods make sense for different use cases. For most people starting out it's easier to put all of those things together in a `modules/` folder. If you run into a case where modules need to re-use functionality from each other then you've just discovered why the Redux manual suggests keeping them separate.
 
 This starts make more sense with some code. The following is a combination of the [`actions.js`](http://redux.js.org/docs/basics/Actions.html#-actions-js) and the [`reducers.js`](http://redux.js.org/docs/basics/Reducers.html#-reducers-js) files in the classic [React-Redux Todo example](https://github.com/reactjs/redux/tree/master/examples/todos). The action creator and reducer have been rewritten using [redux-actions](https://github.com/acdlite/redux-actions) for simplicity. For brevity we're only looking at the `visibilityFilter` example from the link component we're exploring. A lot changed here but it will make sense in a second.
 
