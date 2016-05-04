@@ -21,7 +21,7 @@ Upgrading a language can be excruciatingly painful for a community of developers
 
 The differences are huge and most browsers [don't support ES6 yet](https://kangax.github.io/compat-table/es6/) (although [Chrome](http://blog.chromium.org/2016/04/es6-es7-in-browser.html) and [Node](https://nodejs.org/en/blog/release/v6.0.0/) are [*very close*](http://node.green/) now). In browser-land, the [complicated matrix of (un)supported features](http://caniuse.com/) makes the problems of Python and Ruby seem laughably simple. How does it work? Like SCSS before it, Babel completely side-steps the problem: it converts your shiny new ES6 code to plain-old JavaScript first. Babel isn't just smoothing over language compatibility issues for browsers. You can even use [babel to write npm modules](http://jamesknelson.com/writing-npm-packages-with-es6-using-the-babel-6-cli/).
 
-If you're not using Babel you're doing it wrong.
+**If you're not using Babel you're doing it wrong.**
 
 *Note:* Yes, [TypeScript](https://www.typescriptlang.org/) exists. [Don't use it](https://www.quora.com/Should-I-go-with-Babel-or-TypeScript-for-writing-web-apps).
 
@@ -96,7 +96,7 @@ There's a good [write-up about "smart" and "dumb" components](https://medium.com
 *Note:* Everything we're showing here is from the [Todo example in the Redux manual](http://redux.js.org/docs/basics/ExampleTodoList.html)... although slightly rewritten to show how experienced developers apply those core concepts. You'll be less confused if you've studied that tutorial.
 
 ## Components should be simple templates
-A dumb component is essentially a plain template. The code below should look familiar from the ['components/Link.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-link-js) file in the classic [React-Redux Todo example](https://github.com/reactjs/redux/tree/master/examples/todos). The redux manual calls it a [presentational component](http://redux.js.org/docs/basics/UsageWithReact.html#presentational-and-container-components) because all it does is render itself. It doesn't concern itself with were a variable came from.
+A dumb component is essentially a plain template. The code below should look familiar from the [`components/Link.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-link-js) file in the classic [React-Redux Todo example](https://github.com/reactjs/redux/tree/master/examples/todos). The redux manual calls it a [presentational component](http://redux.js.org/docs/basics/UsageWithReact.html#presentational-and-container-components) because all it does is render itself. It doesn't concern itself with were a variable came from.
 
 Read the code below and ask yourself "where do `active` and `onClick` come from?" If you're able to follow along you'll note that those properties "come from the outside." The `Link` component below is "dumb" because it doesn't care how those properties are defined, it just tries to use them to render its template.
 
@@ -157,6 +157,9 @@ export default Link
 
 *Note:* Starting in React 0.14 it's common practice to define components as [stateless functional components](https://facebook.github.io/react/blog/2015/10/07/react-v0.14.html#stateless-functional-components) using a [fat-arrow function](http://www.2ality.com/2012/04/arrow-functions.html).
 
+*Note:* You may want to read up on how to [use destructuring to simulate named parameters](http://www.2ality.com/2015/01/es6-destructuring.html#simulating-named-parameters-in-javascript).
+
+#### Example if a barebones component
 *Note:* Below is the simplest example of a component. Notice how the component itself is just one line.
 
 ```jsx
@@ -180,6 +183,7 @@ export default DumbComponent
 
 *Note:* PropTypes is explained in the massive code block at the top of the [React manual page for reusable components](http://facebook.github.io/react/docs/reusable-components.html).
 
+#### Example of a component using the class syntax
 *Note:* You should only need to use the [fancier ES6 class syntax](http://facebook.github.io/react/blog/2015/01/27/react-v0.13.0-beta-1.html#es6-classes) introduced in React 0.13 in special cases. There's a great write-up on the Babel blog on [the ES6 way to write React components](https://babeljs.io/blog/2015/06/07/react-on-es6-plus) but it doesn't cover the new syntax.
 
 ```jsx
@@ -219,8 +223,6 @@ export default DumbComponent
 ```
 
 *Note:* If you're trying to read about React, ignore how they use the old `React.createClass()` syntax in the manual. Never use something like `React.createClass()` unless, inexplicably, you're not allowed to use ES6. But really... you should be using ES6 no matter what by this point. There is no reason not to be on the ES6 train.
-
-*Note:* You may want to read up on how to [use destructuring to simulate named parameters](http://www.2ality.com/2015/01/es6-destructuring.html#simulating-named-parameters-in-javascript).
 
 ## Containers connect to the store
 If dumb components don't know where the data comes from, who does?! The answer is "smart" components. The Redux manual calls them [container components](http://redux.js.org/docs/basics/UsageWithReact.html#presentational-and-container-components). A container component is the bridge between React and Redux. The library that connects them is called [React-Redux](https://github.com/reactjs/react-redux). Because a container component is gluing together two different things it needs to *map* the concepts of *one to the other*. A container component maps the concepts for interacting with a a React component with the concepts for interacting with the Redux store.
