@@ -177,7 +177,7 @@ export default Link
 4. If you're defining a component that **only** needs to return a template you can use parenthesis to wrap your JSX template. This allows for multiline templates to be used with a one-line [fat-arrow function with an implied return](http://stackoverflow.com/questions/28889450/when-should-i-use-return-in-es6-arrow-functions).
 
   ```jsx
-  const SimpleLink = (onClick, children) => (
+  const SimpleLink = ({ onClick, children }) => (
     <a href="#"
        onClick={e => {
          e.preventDefault()
