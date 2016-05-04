@@ -193,8 +193,8 @@ export default Link
 
 *Note:* You may want to read up on how to [use destructuring to simulate named parameters](http://www.2ality.com/2015/01/es6-destructuring.html#simulating-named-parameters-in-javascript).
 
-#### Example if a barebones component
-*Note:* Below is the simplest example of a component. Notice how the component itself is just one line.
+#### Example of a barebones component
+Below is the simplest example of a component. Notice how the component itself is just one line.
 
 ```jsx
 import React, { PropTypes } from 'react'
