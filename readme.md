@@ -138,7 +138,41 @@ export default Link
   ```
 2. We're using the `active` prop to return a `span` or an `a[href]`.
 
+  ```jsx
+  //...
+  
+  // return a span if active is truthy
+  if (active) {
+    return <span>{children}</span>
+  }
+  
+  // otherwise return an a[href]
+  return <a href="#">{children}</a>
+
+  //...
+  ```
+
 3. The `onClick` attribute of the `a[href]` calls the `onclick()` property on the `Link`. The `onclick()` prop must be passed in from the outside.
+
+  ```jsx
+  // the onClick prop comes from the outside
+  const Link = ({ active, children, onClick }) => {
+    //...
+    
+    // React allows JSX elements to declare onCLick attributes
+    // @see https://facebook.github.io/react/docs/events.html#supported-events
+    return (
+      <a href="#"
+         onClick={e => {
+           e.preventDefault()
+           onClick() // <-- we call onClick prop here
+         }}
+      >
+        {children}
+      </a>
+    )
+  }
+  ```
 
 4. If you're defining a component that **only** needs to return a template you can use parenthesis to wrap your JSX template. This allows for multiline templates to be used with a one-line [fat-arrow function with an implied return](http://stackoverflow.com/questions/28889450/when-should-i-use-return-in-es6-arrow-functions).
 
