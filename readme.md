@@ -10,7 +10,7 @@ Anyone who got started on Angular back in the early 1.x days can attest that the
 
 In the early Angular days JavaScript build tools were still an insane mess. How messy? Read this [epic anti-history of requireJS](https://gist.github.com/david-mark/2845842) from the man who accidentally inspired the [official requireJS history](http://requirejs.org/docs/history.html). In Angular 1.x you were still bending over backwards to overcome the weirdest part of working with JavaScript: everything ran in the global scope! One could argue that the vast majority of Angular 1.x was written to overcome that one messy hurdle. It was barely a step up from the [IIFE](http://benalman.com/news/2010/11/immediately-invoked-function-expression/) that were the best practice in the jQuery days.
 
-With ES6 and Babel we're now able to use the new `import` syntax for [JavaScript modules](http://www.2ality.com/2014/09/es6-modules-final.html). It encapsulates all of your code, similar in concept to an IFFE, and gives you tight control over how you include and export code in your project. It makes JavaScript feel like am moderns language. It brings the power of Node and NPM to browser development. With Webpack it gets even better. If you've got the right setup you can focus on your code and trust that everything will just work.
+With ES6 and Babel we're now able to use the new `import` syntax for [JavaScript modules](http://www.2ality.com/2014/09/es6-modules-final.html). It encapsulates all of your code, similar in concept to an IFFE, and gives you tight control over how you include and export code in your project. It makes JavaScript feel like a modern language. It brings the power of Node and NPM to browser development. With Webpack it gets even better. If you've got the right setup you can focus on your code and trust that everything will just work.
 
 Ember takes all of that a huge step further into the future with their impressive [ember-cli](http://ember-cli.com/) tool. Used with [Ember Data](https://guides.emberjs.com/v2.5.0/models/) and [JSONAPI](http://jsonapi.org/) (especially with a [Rails 5 API](http://emberigniter.com/modern-bridge-ember-and-rails-5-with-json-api/)) Ember is a powerful and productive framework. Ember shares a number of core concepts and tooling with React-Redux, including a focus on components and using Babel to bring ES6 modules to the development life cycle. The biggest problem with Ember is that it makes it [enormously difficult to use NPM packages](http://stackoverflow.com/questions/26544578/how-to-use-third-party-npm-packages-with-ember-cli-app). They have their reasons for this decision, but it's not a restriction that exists in a typical React-Redux App.
 
@@ -39,18 +39,18 @@ If you're new to Redux and want to get started there's really no better place th
 
 Having the hard work of getting Webpack and Babel working up with all of the best practices is a *massive* time saver. You're not likely to need to mess with the defaults until much later in your dev process. This allows you to get to the hard work of building your app without getting lost in the tooling.
 
-Because the Redux ecosystem is heavily inspired by the Node ecosystem (a React-Redux app uses NPM to manage packages) there isn't ever going to be a full framework like there is for Ember. Instead, building a React-Redux app is an exercise in assembling the right tools for your application. Sadly, beyond the foundations in the starter-kit you're going to have to research to find each of those little tools and stitch them together yourself. Much of what you need is easy to find on NPM. In practice tis level of control actually becomes a blessing as your app matures. However, for starting out it can be daunting.
+Because the Redux ecosystem is heavily inspired by the Node ecosystem (a React-Redux app uses NPM to manage packages) there isn't ever going to be a full framework like there is for Ember. Instead, building a React-Redux app is an exercise in assembling the right tools for your application. Sadly, beyond the foundations in the starter-kit you're going to have to research to find each of those little tools and stitch them together yourself. Much of what you need is easy to find on NPM. In practice this level of control actually becomes a blessing as your app matures. However, for starting out it can be daunting.
 
 ### NPM is your friend
 If you're completely new to the Node ecosystem you might be worried about things like how all of your code fits together. It becomes clearer with practice. You might enjoy reading about [ES6 modules in depth](https://hacks.mozilla.org/2015/08/es6-in-depth-modules/). The short version is that you don't have to worry about your code colliding with other code. If you're looking at a file that uses `import` then you know exactly what code is going to run in that file. If you look at the `export` declarations in a file then you'll know exactly what will be available when you import it. When you need a package, install it with NPM.
 
 One thing to note is that the files in your project are all imported relative to each other. This is extremely powerful because it allows you to organize your code in any way you want. The only restriction is that if you want your code to run you have to import it *somewhere*. It's hard to really grasp how powerful it is to have no restrictions on how your organize your code. There's no *wrong* place to put your files.
 
-- Don't bother with Bower unless it's the only way to get something you need (sometimes bower packages include code that npm packages don't). For the most part a Bower packer can be installed with NPM.
+- Don't bother with Bower unless it's the only way to get something you need (sometimes bower packages include code that npm packages don't). For the most part a Bower package can be installed with NPM.
 - Don't bother with [alternative package managers](http://andrewhfarmer.com/javascript-frontend-package-managers/).
-- Don't worry about Node vs Browser. If you're trying to write universal code that runs in the browser and on the server, remember this simple rule: With very few exceptions, *all JavaScript code is universal*.
-- The one big exception is, duh, [Node-specific APIs](https://nodejs.org/dist/latest/docs/api/). When in doubt, only use functions you can find on [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript). The Node-specific API won't work in the browser but the vast majority of what Node offers is powered by V8, the same JavaScript engine used in Chrome. If you're constantly running into issues where your code isn't working in a browser because it's Node-specific you are probably doing something *very wrong*.
-- If you're trying to evaluate if a package is likely to work for your project a good rule of thumb is "does it work with the filesystem or not?" That's usually a good filter. Some NPM packages are clearly designed to work with the server and they're usually easy to spot. 
+- Don't worry about code that works in Node vs. The Browser. If you're trying to write universal code that runs in the browser and on the server remember this simple rule: *all JavaScript code is universal* (with very few exceptions). When in doubt, use functions you can find on [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript).
+- The one big exception is, *duh*, the [Node-specific APIs](https://nodejs.org/dist/latest/docs/api/)! The Node-specific APIs usually won't work in the browser because they're for working with the file system or the operating system (that's a security issue in browsers). However, he vast majority of what Node offers is powered by [V8](https://developers.google.com/v8/), the same JavaScript engine used in Chrome. *Note:* If you're constantly running into issues where your code isn't working in a browser because it's Node-specific... you are probably doing something *very wrong*.
+- If you're trying to evaluate if a package is likely to work for your project a good rule of thumb is "does it work with the file system or not?" That's usually a good filter. Some NPM packages are clearly designed to work with the server and they're usually easy to spot. 
 
 ## Getting Started with the Starter Kit
 What you may not realize is that you *must* watch the videos before doing anything with React-Redux. You have to watch the videos before you can even read the manual. **If you haven't watched the videos you shouldn't be reading this right now!**
@@ -72,7 +72,7 @@ The [Redux Todo tutorial](http://redux.js.org/docs/basics/index.html) currently 
 ## Middleware blues
 The biggest missing piece from the starter kit is a strong opinion about [middleware](http://redux.js.org/docs/advanced/Middleware.html). Don't get slowed down if you don't understand middleware right now. What you need to know is that you will use someone else's middleware, you likely won't write your own. The Redux community is coalescing around [redux-sagas](http://yelouafi.github.io/redux-saga/index.html) as the middleware of choice. Each project is free to make its own choice in this regard and Redux seems to have left this gap wide open on purpose. You'll likely feel extremely opinionated yourself once you get started on your *second* app.
 
-When we get there you'll want to choose between [redux-saga](https://github.com/yelouafi/redux-saga), [redux-effects](https://github.com/redux-effects/redux-effects), [redux-side-effects](https://github.com/gregwebs/redux-side-effect), and [redux-loop](https://github.com/raisemarketplace/redux-loop). Unless of course you're in love with [Redux-thunk](https://github.com/gaearon/redux-thunk).
+When we get there you'll want to choose between [redux-saga](https://github.com/yelouafi/redux-saga), [redux-effects](https://github.com/redux-effects/redux-effects), [redux-side-effects](https://github.com/gregwebs/redux-side-effect), and [redux-loop](https://github.com/raisemarketplace/redux-loop). Unless of course you're in love with [redux-thunk](https://github.com/gaearon/redux-thunk).
 
 We're going to be [using Redux-Sagas](http://riadbenguella.com/from-actions-creators-to-sagas-redux-upgraded/) and [you should too](http://stackoverflow.com/questions/34570758/why-do-we-need-middleware-for-async-flow-in-redux/34623840#34623840). But there are other options for [Redux effects middleware](https://blog.hivejs.org/building-the-ui-2/) if the Sagas middleware isn't right for you.
 
@@ -255,7 +255,8 @@ class DumbComponent extends Component {
 // it's still prettier to define them down here
 // @see https://babeljs.io/blog/2015/06/07/react-on-es6-plus
 DumbComponent.propTypes = {
-  name: PropTypes.string.isRequired
+  name: PropTypes.string.isRequired,
+  fetchInitialState: PropTypes.func.isRequired
 }
 
 // export the component so someone can put it in a page somewhere
@@ -267,7 +268,7 @@ export default DumbComponent
 ## Containers connect to the store
 If dumb components don't know where the data comes from, who does?! The answer is "smart" components. The Redux manual calls them [container components](http://redux.js.org/docs/basics/UsageWithReact.html#presentational-and-container-components). A container component is the bridge between React and Redux. The library that connects them is called [React-Redux](https://github.com/reactjs/react-redux). Because a container component is gluing together two different things it needs to *map* the concepts of *one to the other*. A container component maps the concepts for interacting with a a React component with the concepts for interacting with the Redux store.
 
-A container hooks a component into Redux. React, even without Redux, has several advanced methods that allow components to deeply manage their own state. If you've read a React tutorial you've probably read about the [component state](https://facebook.github.io/react/docs/component-api.html#setstate). Forget about that! Redux stores the state for you. Redux enforces a strict data flow in order to know precisely when components need to update. The container can dispatch actions and read from the store. The container handles events from the component and passes data to it. The interface for this is deceptively simple and best explained with some code. The code below should look familiar from the ['containers/FilterLink.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-filterlink-js) in the classic [React-Redux Todo example](https://github.com/reactjs/redux/tree/master/examples/todos).
+A container hooks a component into Redux. React, even without Redux, has several advanced methods that allow components to deeply manage their own state. If you've read a React tutorial you've probably read about the [component state](https://facebook.github.io/react/docs/component-api.html#setstate). Forget about that! Redux stores the state for you. Redux enforces a strict data flow in order to know precisely when components need to update. The container can dispatch actions and read from the store. The container handles events from the component and passes data to it. The interface for this is deceptively simple and best explained with some code. The code below should look familiar from the [`containers/FilterLink.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-filterlink-js) in the classic [React-Redux Todo example](https://github.com/reactjs/redux/tree/master/examples/todos).
 
 ```js
 import { connect } from 'react-redux'
@@ -307,15 +308,30 @@ It's important to go over the steps that are involved here.
   )(Link)
   ```
 
-2. `mapStateToProps` and `mapDispatchToProps` are callback functions that are called from within `[connect()](https://github.com/reactjs/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options)`. Under the hood they are using the `[subscribe()](http://redux.js.org/docs/api/Store.html#subscribe)` method from Redux and `componentDidMount()` and `setState()` in React. You may want to check out [what the connect function does](https://github.com/reactjs/react-redux/blob/master/src/components/connect.js#L75). Whatever the magic to goes on under the hood, it's important to know that `connect()` ensures that when the state changes the component will be rendered with the updated props from the store.
+2. `mapStateToProps` and `mapDispatchToProps` are callback functions that are called from within [`connect()`](https://github.com/reactjs/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options). Under the hood they are using the [`subscribe()`](http://redux.js.org/docs/api/Store.html#subscribe) method from Redux and [`componentDidMount()`](http://facebook.github.io/react/docs/component-specs.html#mounting-componentdidmount) and [`setProps()`](http://facebook.github.io/react/docs/component-api.html#setprops) in React. You may want to check out [what the connect function does](https://github.com/reactjs/react-redux/blob/master/src/components/connect.js#L75). Whatever the magic that goes on under the hood it's important to know that `connect()` ensures that when the state changes the component will be rendered with the updated props from the store.
 
 3. The `FilterLink` container is wrapping the `Link` component. A container's entire purpose is to wrap a component in order to connect it to the Redux store. To do that the container will map values from the state to properties on the component. It also maps dispatched actions to functions on the component.
+
+  ```js
+  const FilterLink = connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(Link) // <-- Look! The Link component is being passed to the FilterLink container
+  ```
 
 4. `mapStateToProps` is where you can pull values out of the state and define them as properties on the connected component. If you look at the example, the wrapped component will be receiving an `active` property that returns true if the container's `filter` prop is equal to the `visibilityFilter` from the state. The example is designed to show that the container can have props, like `ownProps.filter` that the wrapped component never knows about.
 
   ```js
+  // state comes from Redux
+  // ownProps comes from the container
+  // <FilterLink hello={true} /> becomes ownProps.hello
   const mapStateToProps = (state, ownProps) => {
     return {
+
+      // we're comparing a prop with a value from the state
+      // you can read any value from the state that you'd like
+      // it's common to use selectors when you read from the state
+      // @see https://github.com/reactjs/reselect
       active: ownProps.filter === state.visibilityFilter
     }
   }
@@ -324,9 +340,18 @@ It's important to go over the steps that are involved here.
 5. `mapDispatchToProps` is where you can create functions that dispatch actions to the store. In Redux there is a strict separation of concerns. In another framework you'd be tempted to have your template actions immediately do something. But in Redux we dispatch every action using a strict flow. This makes it easier to reuse functionality and to creatively mix and match functionality once you get the hang of things.
 
   ```js
+  // dispatch comes from Redux
+  // ownProps comes from the container
+  // <FilterLink hello={true} /> becomes ownProps.hello
   const mapDispatchToProps = (dispatch, ownProps) => {
     return {
+
+      // here we define the onClick prop for the component
       onClick: () => {
+
+        // when we click in the component we dispatch an action to Redux
+        // here we're using the setVisibilityFilter action creator
+        // same as dispatch({ type: 'SET_VISIBILITY_FILTER', payload: ownProps.filter })
         dispatch(setVisibilityFilter(ownProps.filter))
       }
     }
@@ -344,7 +369,7 @@ Containers are all about reading from the store and sending actions to Redux.
 ## The Store is immutable by convention
 If you've been reading up on React and Redux you've probably come across libraries such as [Immutable.js](https://facebook.github.io/immutable-js/). Forget about it. Redux completely replaces the need for a library like Immutable.js. You can still use it with Redux (and many people do) but Immutable simply enforces what Redux defines by convention. *Hint:* If you're worried about your state being mutated in unexpected ways you should be writing better tests.
 
-There are a great number of fascinating advantages that surface from the simple decision of Redux to store all of the application state in a single immutable object. Redux is a methodology and minimal toolkit for working with the store. This is the next part of React-Redux that can seem very daunting. Redux's simplicity becomes it's great power. Utilizing barebones JavaScript and good conventions is the spirit of Redux. There is no need for something like Immutable when you're doing Redux correctly.
+There are a great number of fascinating advantages that surface from the simple decision of Redux to store all of the application state in a single immutable object. Redux is a methodology and minimal toolkit for working with the store. This is the next part of React-Redux that can seem very daunting. Redux's simplicity becomes it's great power. Utilizing barebones JavaScript and good conventions is the spirit of Redux. There is no need for something like Immutable.js when you're doing Redux correctly.
 
 ### The Store is what you make of it
 Everything uses the same store. If you put something in the store a container can read from it. There are no restrictions of which part of the store you can write to or read from. At it's base level it might feel a little disorganized or even insecure. But the store is what you make of it. We'll see that people commonly organize things into modules and use some basic Redux functionality that makes things a little less scary.
@@ -385,8 +410,11 @@ Let's dig into what's going on here:
 1. We have an action creator named `setVisibilityFilter()`. In the `FilterLink` container we use our action creator function to create an action object that we dispatch when someone clicks the `Link`. An action creator is a simple function that returns an object with a `type` and a `payload`.
 
   ```js
+  // create an action creator
+  // @see https://github.com/acdlite/redux-actions#createactiontype-payloadcreator--identity-metacreator
   export const setVisibilityFilter = createAction(SET_VISIBILITY_FILTER)
   
+  // action creators are super simple
   console.log(setVisibilityFilter)
   /* -->
   function(payload) {
@@ -395,12 +423,15 @@ Let's dig into what's going on here:
   */
   ```
 
-2. Action creators are easy to write by hand but using `createAction()` makes it even easier. By default the function creates an action creator that accepts a payload. The vast majority of the time this is all an action needs to do -- marry a payload to an action type. You can see that the `FilterLink` container sends the `ownProps.filter` payload to the `setVisibilityFilter(payload)` action creator. Compare this to [the long-hand version in the Todos example](https://github.com/reactjs/redux/blob/master/examples/todos/actions/index.js#L10-L15).
+2. Action creators are easy to write by hand but using [`createAction()`](https://github.com/acdlite/redux-actions#createactiontype-payloadcreator--identity-metacreator) makes it even easier. By default the function creates an action creator that accepts a payload. The vast majority of the time this is all an action needs to do -- marry a payload to an action type. You can see that the `FilterLink` container sends the `ownProps.filter` payload to the `setVisibilityFilter(payload)` action creator. Compare this to [the long-hand version in the Todos example](https://github.com/reactjs/redux/blob/master/examples/todos/actions/index.js#L10-L15).
 
   ```js
-  const actionObject = setVisibilityFilter('some string')
+  // some people call an action creator an action
+  // but actions are what action creators return
+  // an action is just an object with a type and a payload
+  const action = setVisibilityFilter('some string')
   
-  console.log(actionObject)
+  console.log(action)
   // --> { type: 'SET_VISIBILITY_FILTER', payload: 'some string' }
   ```
 
@@ -411,7 +442,7 @@ Let's dig into what's going on here:
   const mapDispatchToProps = (dispatch, ownProps) => {
     return {
       onClick: () => {
-        // same as dispatch({ type: 'SET_VISIBILITY_FILTER', payload: ownProps.filter })
+        // we have to dispatch our actions manually
         dispatch(setVisibilityFilter(ownProps.filter))
         
       }
@@ -419,7 +450,7 @@ Let's dig into what's going on here:
   }
   ```
 
-3. After an action is dispatched it is handled by a reducer. In the example you can see that the `handleActions(map, initialState)` function creates a reducer that can handle an action named `SET_VISIBILITY_FILTER`. Probably the single ugliest thing about Redux is the reliance on all-caps constants. It's absolutely awful to have these long descriptive strings screaming at you. If you can squint and look past them, reducers start to get really simple.
+3. After an action is dispatched it is handled by a reducer. In the example you can see that the [`handleActions(map, initialState)`](https://github.com/acdlite/redux-actions#handleactionsreducermap-defaultstate) function creates a reducer that can handle an action named `SET_VISIBILITY_FILTER`. Probably the single ugliest thing about Redux is the reliance on all-caps constants. It's absolutely awful to have these long descriptive strings screaming at you. If you can squint and look past them, reducers start to get really simple.
 
   ```js
   export const visibilityFilter = handleActions({
@@ -439,6 +470,13 @@ Let's dig into what's going on here:
 
 4. Our reducer for `SET_VISIBILITY_FILTER` accepts the `state` and the `action` and returns the new state. In this case the state for `visibilityFilter` is just a simple string. We're returning whatever was passed in as the payload as the new state. What's really subtle is that `combineReducers()` is what's pulling out the part of the state that the `visibilityFilter(state, action)` reducer cares about. This makes it possible for our reducer to simply return the `action.payload` as the new state instead of trying to store it in the `state.visibilityFilter` property. That's slightly confusing because where you store something in the state determines how read something. Not explicitly stating how our state is stored is actually a hidden power of Redux. The confusing part simply goes away once you've worked with it for a while.
 
+  ```js
+  // a reducer can be incredibly simple
+  // here it's just a fat arrow function
+  // we're blindly returning the payload as the new state
+  (state, { payload }) => payload
+  ```
+
 5. [`combineReducers()`](http://redux.js.org/docs/api/combineReducers.html) is a key part of how the Redux store can allow every component to share a state without causing massive collisions. A reducer is in charge of managing the state that's passed to it. `combineReducers()` calls each reducer it is passed with only the part of the state matching its key. In this case the reducer created by `combineReducers()` will pass `state.visibilityFilter` to the `visibilityFilter(state, action)` function. That clever tick ensures that the reducer won't accidentally overwrite the wrong part of the state. This is also the beginning of some of the magic reusability that Redux enables. Once you begin to master reducers you will be able to mix and match them all you want. The Redux authors refer to this as composability (it's what the [`compose()`](http://redux.js.org/docs/api/compose.html) function is for).
 
   ```js
@@ -451,7 +489,7 @@ Let's dig into what's going on here:
   // a toy example replacing combineReducers
   // check out the real deal: https://github.com/reactjs/redux/blob/master/src/combineReducers.js
   export default function(state, action) {
-    // we have an object whose keys match the name of a reducer
+    // we have an object whose keys match the name of a reducer function
     const reducers = {
       todos,
       visibilityFilter
@@ -469,7 +507,7 @@ Let's dig into what's going on here:
       // replace the key with the new sub state from the reducer
       return {
         ...state,
-        key: reducer(subState, action)
+        [key]: reducer(subState, action)
       }
     })
   }
