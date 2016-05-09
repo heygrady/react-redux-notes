@@ -345,7 +345,6 @@ export default Footer
 ```
 
 ### `src/routes/Todos/containers/FilterLink.js`
-
 Compare to [`containers/FilterLink.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-filterlink-js).
 
 ```bash
@@ -387,18 +386,71 @@ const FilterLink = connect(
 export default FilterLink
 ```
 
-### `src/routes/Todos/modules/Todo.js`
+### `src/routes/Todos/components/Link.js`
+Compare to [`components/Link.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-link-js).
+
+```bash
+mkdir -p src/routes/Todos/components
+touch src/routes/Todos/components/Link.js
+
+# don't forget to make tests
+mkdir -p tests/routes/Todos/components
+touch tests/routes/Todos/components/Link.spec.js
+
+# this doesn't work yet
+redux g component Link --path routes/Todos
+```
+
+```jsx
+import React, { PropTypes } from 'react'
+
+const Link = ({ active, children, onClick }) => {
+  if (active) {
+    return <span>{children}</span>
+  }
+
+  const _onClick = e => {
+    e.preventDefault()
+    onClick()
+  }
+
+  return (
+    <a href='#'
+      onClick={_onClick}
+    >
+      {children}
+    </a>
+  )
+}
+
+Link.propTypes = {
+  active: PropTypes.bool.isRequired,
+  children: PropTypes.node.isRequired,
+  onClick: PropTypes.func.isRequired
+}
+
+export default Link
+```
+
+*Note:* `_onClick` is pulled out to comply with the [eslint-plugin-react jsx-no-bind rule](https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-no-bind.md). Because of a technicality of how functions are bound to `this` it is not wise to use a fat-arrow function inside of a JSX template.
+
+## Todos Module
+These are the files needed to manage the todos state.
+
+### `src/routes/Todos/modules/todos.js`
+
+Compare to [`actions/index.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-actions-index-js) and [`reducers/todos.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-reducers-todos-js).
 
 ```bash
 mkdir -p src/routes/Todos/modules
-touch src/routes/Todos/modules/Todo.js
+touch src/routes/Todos/modules/todos.js
 
 # don't forget to make tests
 mkdir -p tests/routes/Todos/modules
-touch tests/routes/Todos/modules/Todo.spec.js
+touch tests/routes/Todos/modules/todos.spec.js
 
 # this doesn't work yet
-redux g module Todo --path routes/Todos
+redux g module todos --path routes/Todos
 ```
 
 ```js
@@ -453,55 +505,11 @@ export default combineReducers({
 })
 ```
 
-
-### `src/routes/Todos/components/Link.js`
-
-```bash
-mkdir -p src/routes/Todos/components
-touch src/routes/Todos/components/Link.js
-
-# don't forget to make tests
-mkdir -p tests/routes/Todos/components
-touch tests/routes/Todos/components/Link.spec.js
-
-# this doesn't work yet
-redux g component Link --path routes/Todos
-```
-https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-no-bind.md
-
-```jsx
-import React, { PropTypes } from 'react'
-
-const Link = ({ active, children, onClick }) => {
-  if (active) {
-    return <span>{children}</span>
-  }
-
-  const _onClick = e => {
-    e.preventDefault()
-    onClick()
-  }
-
-  return (
-    <a href='#'
-      onClick={_onClick}
-    >
-      {children}
-    </a>
-  )
-}
-
-Link.propTypes = {
-  active: PropTypes.bool.isRequired,
-  children: PropTypes.node.isRequired,
-  onClick: PropTypes.func.isRequired
-}
-
-export default Link
-
-```
+## Todos Form
 
 ### `src/routes/Todos/containers/AddTodo.js`
+
+Compare to [`containers/AddTodo.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-addtodo-js).
 
 ```bash
 mkdir -p src/routes/Todos/containers
@@ -556,7 +564,10 @@ export default AddTodo
 
 ```
 
+## Todos List
+
 ### `src/routes/Todos/containers/VisibleTodoList.js`
+Compare to [`containers/VisibleTodoList.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-visibletodolist-js).
 
 ```bash
 mkdir -p src/routes/Todos/containers
@@ -613,11 +624,10 @@ const VisibleTodoList = connect(
 )(TodoList)
 
 export default VisibleTodoList
-
 ```
 
-
 ### `src/routes/Todos/components/TodoList.js`
+Compare to [`components/TodoList.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-todolist-js).
 
 ```bash
 mkdir -p src/routes/Todos/components
@@ -637,9 +647,6 @@ import Todo from './Todo'
 
 const TodoList = ({ todos, onTodoClick, loadingTodos }) => (
   <ul>
-    {loadingTodos
-    ? <li>Loading...</li>
-    : null}
     {todos.map(todo =>
       <Todo
         key={todo.id}
@@ -666,6 +673,7 @@ export default TodoList
 ```
 
 ### `src/routes/Todos/components/Todo.js`
+Compare to [`components/Todo.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-todo-js).
 
 ```bash
 mkdir -p src/routes/Todos/components
