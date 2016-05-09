@@ -53,7 +53,7 @@ If you're new to react-router they recommend that you:
 We're actually just going to be copying what the included [`Counter` route](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/Counter/index.js) contains.
 
 ### Create the files for your route
-We're going to eventually be storing our components, containers and modules using the fractal project structure so we'll be creating `components/`, `containers/` and `modules/` folders inside our `routes/Todos/` folder. *Hint:* [`mkdir -p <path>`](http://unix.stackexchange.com/questions/49263/recursive-mkdir).
+We're going to eventually be storing our components, containers and modules using the [fractal project structure](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure) so we'll be creating `components/`, `containers/` and `modules/` folders inside our `routes/Todos/` folder. *Hint:* [`mkdir -p <path>`](http://unix.stackexchange.com/questions/49263/recursive-mkdir).
 
 ```bash
 mkdir -p src/routes/Todos/components
@@ -63,8 +63,8 @@ touch src/routes/Todos/components/TodosView.js
 touch src/routes/Todos/index.js
 ```
 
-##### `src/routes/Todos/index.js`
-We need to add some boilerplate code to your route file. You can see the way the router itself is configured by checking in the [`src/routes/index.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js) file. By default your app is configured to allow for lazy-loading of routes. This is an important consideration for large apps and it's easy enough to support it from the very beginning. You don't have to know exactly how all of this magic works but you need understand that it's important. Under the hood we're [using Webpack's code-splitting feature](https://webpack.github.io/docs/code-splitting.html) to make sure the code bundles created by Webpack are as small as possible.
+### Todos Route: `src/routes/Todos/index.js`
+We need to add some boilerplate code to our route file. You can see the way the router itself is configured by checking in the [`src/routes/index.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js) file. By default your app is configured to allow for lazy-loading of routes. This is an important consideration for large apps and it's easy enough to support it from the very beginning. You don't have to know exactly how all of this magic works but you need understand that it's important. Under the hood we're [using Webpack's code-splitting feature](https://webpack.github.io/docs/code-splitting.html) for performance.
 
 ```js
 import { injectReducer } from '../../store/reducers'
@@ -123,7 +123,7 @@ It's important to pay attention to what's going on here:
 ```js
 // ...
 
-// you should load your view normally
+// you could load your view normally
 // if you don't need async for some reason
 import TodosView from './components/TodosView'
 export default (store) => ({
@@ -135,7 +135,7 @@ export default (store) => ({
 })
 ```
 
-3. We need to name our [name our Webpack chunk](https://github.com/webpack/webpack/tree/master/examples/named-chunks). Webpack supports [code-splitting](https://webpack.github.io/docs/code-splitting.html) through a specialty `require.ensure()` function. If you've been reading about Node then you've probably heard about using the `require()` function for [loading modules](https://nodejs.org/api/modules.html). If you've been reading about ES6 then you' probably know you should *usually* [use `import` instead of `require`](http://stackoverflow.com/questions/31354559/using-node-js-require-vs-es6-import-export). The `require.ensure()` function is particular to Webpack, not Node, and solves a specific use-case for lazy-loading parts of your app for performance reasons. If it bothers you that we're [using `require` instead of `import`](https://webpack.github.io/docs/code-splitting.html#es6-modules) that's a good instinct but in this case `require` is the only way to do what we need.
+3. We need to [name our Webpack chunk](https://github.com/webpack/webpack/tree/master/examples/named-chunks). Webpack supports [code-splitting](https://webpack.github.io/docs/code-splitting.html) through a specialty `require.ensure()` function. If you've been reading about Node then you've probably heard about using the `require()` function for [loading modules](https://nodejs.org/api/modules.html). If you've been reading about ES6 then you' probably know you should *usually* [use `import` instead of `require`](http://stackoverflow.com/questions/31354559/using-node-js-require-vs-es6-import-export). The `require.ensure()` function is particular to Webpack, not Node, and solves a specific use-case for lazy-loading parts of your app for performance reasons. If it bothers you that we're [using `require` instead of `import`](https://webpack.github.io/docs/code-splitting.html#es6-modules) that's a good instinct but in this case `require.ensure()` is the only way to do what we need.
 
   ```js
   // ...
@@ -145,6 +145,7 @@ export default (store) => ({
     getComponent (nextState, cb) {
 
       // require.ensure is a special Webpack thing
+      // the first argument should be an empty array
       // @see https://webpack.github.io/docs/code-splitting.html
       require.ensure([], (require) => {
 
@@ -156,7 +157,7 @@ export default (store) => ({
   })
   ```
 
-4. We need to import our view and our module using the `require` function passed to us by ` require.ensure`. You'll notice that we're [tacking a `.default` on the end of our `require()` function](https://github.com/esnext/es6-module-transpiler/issues/85). That's required to cover a gap in how `import` works vs `require`. You can read in depth about [ES6 modules](http://www.2ality.com/2014/09/es6-modules-final.html) if you'd like. The key take away is that... if you want to import an ES6 module pragmatically you have to use `require()`. And if you use `require()` to import an ES6 module, you will receive an object where each key matches one of your named exports (ES6 modules support [named exports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export) and `require()` doesn't). In this case we're trying to use the `default` export, so we need to use the `.default` property. If you've ever wondered [how to import every file in a folder in Node](http://stackoverflow.com/questions/5364928/node-js-require-all-files-in-a-folder), that's what `require()` is for.
+4. We need to import our view and our module using the `require` function passed to us by ` require.ensure`. You'll notice that we're [tacking a `.default` on the end of our `require()` function](https://github.com/esnext/es6-module-transpiler/issues/85). That's required to cover a gap in how `import` works vs `require`. You can read in depth about [ES6 modules](http://www.2ality.com/2014/09/es6-modules-final.html) if you'd like. The key take away is that **if you want to import an ES6 module programatically you have to use `require()`**. And if you use `require()` to import an ES6 module, you will receive an object where each key matches one of your named exports (ES6 modules support [named exports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export) and `require()` doesn't). In this case we need to use the `default` export, so we need to use the `.default` property. If you've ever wondered [how to import every file in a folder in Node](http://stackoverflow.com/questions/5364928/node-js-require-all-files-in-a-folder), that's what `require()` is for.
 
   ```js
   // ...
@@ -167,7 +168,7 @@ export default (store) => ({
   // ...
   ```
 
-5. We need to inject our reducer into the store using the `injectReducer(store, map)` function. This function comes with the react-redux-starter-kit in the [`src/store/reducers.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/store/reducers.js) file. This construct allows for lazy-loaded routes to add reducers to the Redux store after the initial page load. There's not much magic going on there but if you poke around and see `asyncReducers` mentioned in the code it's referring to the reducer from a route that was loaded as an asynchonous chunk by Webpack. **Important:** the `key` specifies a key on the store that the reducers in your route will inherit from. It's similar in concept to what [`combineReducers()`](http://redux.js.org/docs/api/combineReducers.html) does.
+5. We need to inject our reducer into the store using the `injectReducer(store, map)` function. This function comes with the react-redux-starter-kit in the [`src/store/reducers.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/store/reducers.js) file. This construct allows for lazy-loaded routes to add reducers to the Redux store after the initial page load. There's not much magic going on there but if you poke around and see `asyncReducers` mentioned in the code it's referring to the reducer from a route that was loaded as an asynchronous chunk by Webpack. **Important:** the `key` specifies a key on the store that the reducers in your route will inherit from. It's similar in concept to what [`combineReducers()`](http://redux.js.org/docs/api/combineReducers.html) does.
 
   ```js
   import { injectReducer } from '../../store/reducers'
@@ -180,4 +181,530 @@ export default (store) => ({
   // ...
   ```
 
-##### `src/routes/Todos/components/TodosView.js`
+#### Add our route to the router
+In a typical React-Redux app nothing is loaded by magic. Simply creating a route won't make it show up in the site. You can check out the parent router in [`src/routes/index.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js).
+
+```js
+// ...
+import Home from './Home'
+import CounterRoute from './Counter'
+import TodosRoute from './Todos' // <-- import your new route
+
+export const createRoutes = (store) => ({
+  path: '/',
+  component: CoreLayout,
+  indexRoute: Home,
+  childRoutes: [
+    CounterRoute(store),
+    TodosRoute(store) // <-- initialize your new route
+  ]
+})
+
+// ...
+```
+
+#### Add our route to the navigation
+You also need to manually manage your site's navigation. You can see how the default app manages the nav in [`src/components/Header/Header.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/components/Header/Header.js). Because our app uses the react-router, you don't have to import your route to create a link to it. You use the react-router [`Link` helper component](https://github.com/reactjs/react-router/blob/master/docs/API.md#link) instead. You may remember that we're using [react-router-redux](https://github.com/reactjs/react-router-redux) by default. In most cases you'll be working directly with react-router and only using react-router-redux for fancy things like time travel.
+
+Here we need to add a `Link` to our `/todos` route. What you put in `<Link to='/todos'` should match the `path: 'todos'` from your route. Here we're prefixing it with a `\` because it is "beneath" the home route. How you nest your routes determines how the URL path to the route is constructed.
+
+```jsx
+// ...
+export const Header = () => (
+  <div>
+    <h1>React Redux Starter Kit</h1>
+    <IndexLink to='/' activeClassName={classes.activeRoute}>
+      Home
+    </IndexLink>
+    {' · '}
+    <Link to='/counter' activeClassName={classes.activeRoute}>
+      Counter
+    </Link>
+    {' · '}
+    <Link to='/todos' activeClassName={classes.activeRoute}>
+      Todos
+    </Link>
+  </div>
+)
+// ...
+```
+
+*Note:* You might notice the `{' · '}` in the code above. That's the [standard React way to add whitespace](https://github.com/facebook/react/issues/1643#issuecomment-45325969). Normally React will strip whitespace between elements. You might like reading about [how whitespace works in React](http://andrewhfarmer.com/how-whitespace-works-in-jsx/).
+
+### Todos View: `src/routes/Todos/components/TodosView.js`
+In the `src/routes/Todos/index.js` file we referenced the `TodosView`. A view is just a component. A view is specific to a route, meaning that a route's primary component is usually considered a view. The react-redux-starter-kit has a [blueprint for views](https://github.com/davezuko/react-redux-starter-kit/tree/master/blueprints/view) that you can use with `redux g view ViewName` but we're not going to use that because it can't add file inside of a route and we want to use the fractal project layout. By default the generator create a `${ViewName}View.js` file in the `views/` folder. We've placed our view in the `components/` folder under our route.
+
+Why? Because a view is just a component (unless it's a container). It's not necessary to break views out into another folder because it's customary to name a view component with like `${RouteName}View`. This makes it unmistakable that the component in question is the view for your route. You are likely to see different developers have different preferences for where the view is located. One reason to keep it in the components folder is that you could reasonably have a view that is a container. In that case the `views/` folder would conceal the fact that the view was a container. Meanwhile, if you keep the view in either the `components/` or `containers/` folder a developer would have a hint about what the file contains before they even open it.
+
+You can easily create a view from the command line with a command like this:
+
+```bash
+mkdir -p src/routes/Todos/components
+touch src/routes/Todos/components/TodosView.js
+
+# don't forget to make tests
+mkdir -p tests/routes/Todos/components
+touch tests/routes/Todos/components/TodosView.spec.js
+
+# this doesn't work yet
+redux g component TodosView --path routes/Todos
+```
+
+This is more straighforward file than a route because it's just a simple presentational component. You can see that we import React, import the `Footer`, `AddTodo` and `VisibleTodoList` and then export a template that simply outputs them.
+
+```jsx
+import React from 'react'
+import Footer from './Footer'
+import AddTodo from '../containers/AddTodo'
+import VisibleTodoList from '../containers/VisibleTodoList'
+
+const TodosView = () => (
+  <div>
+    <AddTodo />
+    <VisibleTodoList />
+    <Footer />
+  </div>
+)
+
+export default TodosView
+```
+
+#### Testing it all out
+At this point we've got a new route with a view. We're referencing a bunch of other components but we can comment that part out and see our app in action right now!
+
+```jsx
+import React from 'react'
+// comment out the view for now
+// import Footer from './Footer'
+// import AddTodo from '../containers/AddTodo'
+// import VisibleTodoList from '../containers/VisibleTodoList'
+
+// const TodosView = () => (
+//   <div>
+//     <AddTodo />
+//     <VisibleTodoList />
+//     <Footer />
+//   </div>
+// )
+
+// return a temporary view
+const TodosView = () => (
+  <div>
+    Todo: Make a todos app
+  </div>
+)
+export default TodosView
+```
+
+# Create the Todo files
+Now that we have our route set up we just need to add in all of the files needed to complete the classic [Todo example from the Redux manual](http://redux.js.org/docs/basics/index.html). We're going to assume that you've reviewed that application. Below we're changing the files to fit better with the react-redux-starter-kit.
+
+
+## Filter Links
+These are the files needed to complete the filter links.
+
+### `src/routes/Todos/components/Footer.js`
+
+Compare to [`components/Footer.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-footer-js).
+
+```bash
+mkdir -p src/routes/Todos/components
+touch src/routes/Todos/components/Footer.js
+
+# don't forget to make tests
+mkdir -p tests/routes/Todos/components/
+touch tests/routes/Todos/components/Footer.spec.js
+
+# this doesn't work yet
+redux g component Footer --path routes/Todos
+```
+
+```jsx
+import React from 'react'
+import FilterLink from '../../containers/FilterLink'
+
+const Footer = () => (
+  <p>
+    Show:
+    {" "}
+    <FilterLink filter="SHOW_ALL">
+      All
+    </FilterLink>
+    {", "}
+    <FilterLink filter="SHOW_ACTIVE">
+      Active
+    </FilterLink>
+    {", "}
+    <FilterLink filter="SHOW_COMPLETED">
+      Completed
+    </FilterLink>
+  </p>
+)
+
+export default Footer
+```
+
+### `src/routes/Todos/containers/FilterLink.js`
+
+Compare to [`containers/FilterLink.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-filterlink-js).
+
+```bash
+mkdir -p src/routes/Todos/containers
+touch src/routes/Todos/containers/FilterLink.js
+
+# don't forget to make tests
+mkdir -p tests/routes/Todos/containers
+touch tests/routes/Todos/containers/FilterLink.spec.js
+
+# this doesn't work yet
+redux g container FilterLink --path routes/Todos
+```
+
+```js
+import { connect } from 'react-redux'
+import { setVisibilityFilter } from '../modules/Todos'
+import Link from '../components/Link'
+
+const mapStateToProps = (state, ownProps) => {
+  return {
+    active: ownProps.filter === state.visibilityFilter
+  }
+}
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+  return {
+    onClick: () => {
+      dispatch(setVisibilityFilter(ownProps.filter))
+    }
+  }
+}
+
+const FilterLink = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Link)
+
+export default FilterLink
+```
+
+### `src/routes/Todos/modules/Todo.js`
+
+```bash
+mkdir -p src/routes/Todos/modules
+touch src/routes/Todos/modules/Todo.js
+
+# don't forget to make tests
+mkdir -p tests/routes/Todos/modules
+touch tests/routes/Todos/modules/Todo.spec.js
+
+# this doesn't work yet
+redux g module Todo --path routes/Todos
+```
+
+```js
+import { combineReducers } from 'redux'
+import { createAction, handleActions } from 'redux-actions'
+import { v4 as uuid } from 'node-uuid'
+
+// Constants
+export const ADD_TODO = 'ADD_TODO'
+export const SET_VISIBILITY_FILTER = 'SET_VISIBILITY_FILTER'
+export const TOGGLE_TODO = 'TOGGLE_TODO'
+
+// Action Creators
+export const addTodo = createAction(ADD_TODO, text => ({ id: uuid(), text }))
+export const setVisibilityFilter = createAction(SET_VISIBILITY_FILTER)
+export const toggleTodo = createAction(TOGGLE_TODO)
+
+// Reducers
+
+// single todo
+const todo = handleActions({
+  [ADD_TODO]: (state, { payload }) => ({
+    id: payload.id,
+    text: payload.text,
+    completed: false
+  }),
+  [TOGGLE_TODO]: (state, { payload }) => (
+    state.id !== payload ? state : {
+      ...state,
+      completed: !state.completed
+    }
+  )
+})
+
+// todos list
+export const todos = handleActions({
+  [ADD_TODO]: (state, action) => ([
+    ...state,
+    todo(undefined, action)
+  ]),
+  [TOGGLE_TODO]: (state, action) => state.map(t => todo(t, action))
+}, [])
+
+// visibility filter
+export const visibilityFilter = handleActions({
+  [SET_VISIBILITY_FILTER]: (state, { payload }) => payload
+}, 'SHOW_ALL')
+
+export default combineReducers({
+  todos,
+  visibilityFilter
+})
+```
+
+
+### `src/routes/Todos/components/Link.js`
+
+```bash
+mkdir -p src/routes/Todos/components
+touch src/routes/Todos/components/Link.js
+
+# don't forget to make tests
+mkdir -p tests/routes/Todos/components
+touch tests/routes/Todos/components/Link.spec.js
+
+# this doesn't work yet
+redux g component Link --path routes/Todos
+```
+https://github.com/yannickcr/eslint-plugin-react/blob/master/docs/rules/jsx-no-bind.md
+
+```jsx
+import React, { PropTypes } from 'react'
+
+const Link = ({ active, children, onClick }) => {
+  if (active) {
+    return <span>{children}</span>
+  }
+
+  const _onClick = e => {
+    e.preventDefault()
+    onClick()
+  }
+
+  return (
+    <a href='#'
+      onClick={_onClick}
+    >
+      {children}
+    </a>
+  )
+}
+
+Link.propTypes = {
+  active: PropTypes.bool.isRequired,
+  children: PropTypes.node.isRequired,
+  onClick: PropTypes.func.isRequired
+}
+
+export default Link
+
+```
+
+### `src/routes/Todos/containers/AddTodo.js`
+
+```bash
+mkdir -p src/routes/Todos/containers
+touch src/routes/Todos/containers/AddTodo.js
+
+# don't forget to make tests
+mkdir -p tests/routes/Todos/containers
+touch tests/routes/Todos/containers/AddTodo.spec.js
+
+# this doesn't work yet
+redux g container AddTodo --path routes/Todos
+```
+
+```js
+import React, { PropTypes } from 'react'
+import { connect } from 'react-redux'
+import { addTodo } from '../modules/Todos'
+
+let AddTodo = ({ dispatch }) => {
+  let input
+
+  const onSubmit = e => {
+    e.preventDefault()
+    if (!input.value.trim()) {
+      return
+    }
+    dispatch(addTodo(input.value))
+    input.value = ''
+  }
+
+  const ref = node => {
+    input = node
+  }
+
+  return (
+    <div>
+      <form onSubmit={onSubmit}>
+        <input ref={ref} />
+        <button type='submit'>
+          Add Todo
+        </button>
+      </form>
+    </div>
+  )
+}
+AddTodo.propTypes = {
+  dispatch: PropTypes.func.isRequired
+}
+AddTodo = connect()(AddTodo)
+
+export default AddTodo
+
+```
+
+### `src/routes/Todos/containers/VisibleTodoList.js`
+
+```bash
+mkdir -p src/routes/Todos/containers
+touch src/routes/Todos/containers/VisibleTodoList.js
+
+# don't forget to make tests
+mkdir -p tests/routes/Todos/containers
+touch tests/routes/Todos/containers/VisibleTodoList.spec.js
+
+# this doesn't work yet
+redux g container VisibleTodoList --path routes/Todos
+```
+
+```js
+import { connect } from 'react-redux'
+import { fetchTodos, toggleTodo, saveTodo } from '../modules/Todos'
+import TodoList from '../components/TodoList'
+
+const getVisibleTodos = (todos, filter) => {
+  switch (filter) {
+    case 'SHOW_ALL':
+      return todos
+    case 'SHOW_COMPLETED':
+      return todos.filter(t => t.completed)
+    case 'SHOW_ACTIVE':
+      return todos.filter(t => !t.completed)
+  }
+}
+
+const mapStateToProps = (state) => {
+  return {
+    todos: getVisibleTodos(state.todosApp.todos, state.todosApp.visibilityFilter),
+    loadingTodos: !!state.todosApp.isLoading
+  }
+}
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    saveTodo: (id) => {
+      dispatch(saveTodo(id))
+    },
+    fetchTodos: () => {
+      dispatch(fetchTodos())
+    },
+    onTodoClick: (id) => {
+      dispatch(toggleTodo(id))
+    }
+  }
+}
+
+const VisibleTodoList = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(TodoList)
+
+export default VisibleTodoList
+
+```
+
+
+### `src/routes/Todos/components/TodoList.js`
+
+```bash
+mkdir -p src/routes/Todos/components
+touch src/routes/Todos/components/TodoList.js
+
+# don't forget to make tests
+mkdir -p tests/routes/Todos/components
+touch tests/routes/Todos/components/TodoList.spec.js
+
+# this doesn't work yet
+redux g component TodoList --path routes/Todos
+```
+
+```jsx
+import React, { PropTypes } from 'react'
+import Todo from './Todo'
+
+const TodoList = ({ todos, onTodoClick, loadingTodos }) => (
+  <ul>
+    {loadingTodos
+    ? <li>Loading...</li>
+    : null}
+    {todos.map(todo =>
+      <Todo
+        key={todo.id}
+        {...todo}
+        onClick={function () { onTodoClick(todo.id) }}
+      />
+    )}
+  </ul>
+)
+
+TodoList.propTypes = {
+  todos: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    completed: PropTypes.bool.isRequired,
+    text: PropTypes.string.isRequired
+  }).isRequired).isRequired,
+  loadingTodos: PropTypes.bool.isRequired,
+  fetchTodos: PropTypes.func.isRequired,
+  saveTodo: PropTypes.func.isRequired,
+  onTodoClick: PropTypes.func.isRequired
+}
+
+export default TodoList
+```
+
+### `src/routes/Todos/components/Todo.js`
+
+```bash
+mkdir -p src/routes/Todos/components
+touch src/routes/Todos/components/Todo.js
+
+# don't forget to make tests
+mkdir -p tests/routes/Todos/components
+touch tests/routes/Todos/components/Todo.spec.js
+
+# this doesn't work yet
+redux g component Todo --path routes/Todos
+```
+
+```jsx
+import React, { PropTypes } from 'react'
+
+const Todo = ({ onClick, completed, text }) => (
+  <li
+    onClick={onClick}
+    style={{
+      textDecoration: completed ? 'line-through' : 'none'
+    }}
+  >
+    {text}
+  </li>
+)
+
+Todo.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  completed: PropTypes.bool.isRequired,
+  text: PropTypes.string.isRequired
+}
+
+export default Todo
+```
+
+
+
+
+
+
+
