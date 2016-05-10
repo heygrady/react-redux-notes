@@ -525,6 +525,6 @@ Let's dig into what's going on here:
 
 # Next
 
-1. Next we'll build the Todo app from the manual with react-redux-starter-kit and redux-cli.
+1. Next we'll [build the Todo app](./react-redux-starter-kit-todos.md) from the manual with react-redux-starter-kit and redux-cli.
 1. We'll use Redux-saga to manage our asynchronous side effects.
 1. We'll make it work with a JSONAPI server for persisting todos to the database.
