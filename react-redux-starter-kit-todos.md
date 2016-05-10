@@ -1,8 +1,10 @@
 # React Redux Starter Kit Todos Tutorial
-This is my example of using [react-redux-starter-kit](https://github.com/davezuko/react-redux-starter-kit) and [redux-cli](https://github.com/SpencerCDixon/redux-cli) to replicate [the Todos app from the Redux manual](http://redux.js.org/docs/basics/ExampleTodoList.html). I'll go through how I wish the CLI worked because in many places the CLI doesn't doesn't yet support the [fractal design pattern](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure) of routes. This is partially because the [default blueprints included with react-redux-starter-kit](https://github.com/davezuko/react-redux-starter-kit/tree/master/blueprints) don't include routes. Partially because [you can't use a `--path` option](https://github.com/SpencerCDixon/redux-cli/issues/72) (like `redux g module myName --path routes/my-route`) with redux-cli yet. It's probably worse that *components*, *containers* and *modules* are called *dumb*, *smart* and *duck* in the default blueprints. But we can fix that ourselves for our own projects.
+This is an example of using [react-redux-starter-kit](https://github.com/davezuko/react-redux-starter-kit) and [redux-cli](https://github.com/SpencerCDixon/redux-cli) to replicate [the Todos app from the Redux manual](http://redux.js.org/docs/basics/ExampleTodoList.html).
+
+We'll be using redux-cli but it doesn't do very much yet. I'll leave notes on how I wish the CLI worked because the CLI doesn't doesn't yet support the [fractal design pattern](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure). This is partially because the [default blueprints included with react-redux-starter-kit](https://github.com/davezuko/react-redux-starter-kit/tree/master/blueprints) don't include routes. And because [you can't use a `--path` option](https://github.com/SpencerCDixon/redux-cli/issues/72) with redux-cli yet. It's probably worse that *components*, *containers* and *modules* are called *dumb*, *smart* and *duck* in the default blueprints. Thankfully we can fix that ourselves for our own projects.
 
 ## This is a hands-on tutorial
-I'm going to write this as if you have your command line open (you should [probably](http://apple.stackexchange.com/questions/25143/what-is-the-difference-between-iterm2-and-terminal) be using [iTerm2](https://www.iterm2.com/) and you're following along. This document is designed for getting you up to speed on the react-redux-starter-kit ecosystem. There *will be* other articles if you're interested in [writing an app with sagas](./redux-sagas-todos.md) or [connecting sagas to an api](./redux-sagas-data.md).
+I'm going to write this as if you have your command line open  and you're following along (you should [probably](http://apple.stackexchange.com/questions/25143/what-is-the-difference-between-iterm2-and-terminal) be using [iTerm2](https://www.iterm2.com/)). This document is designed for getting you up to speed on the react-redux-starter-kit ecosystem. There *will be* other articles if you're interested in [writing an app with sagas](./redux-sagas-todos.md) or [connecting sagas to an api](./redux-sagas-data.md).
 
 #### Install Node
 It's a no-brainer but you should have the [current version of Node](https://nodejs.org/en/) installed. If you're using an other version of Node, there is no reason not to upgrade your local to version 6 (or whatever is currently listed), take a moment and upgrade. It's as easy as downloading the latest installer and double-clicking it. Some people [recommend homebrew to install Node](http://blog.teamtreehouse.com/install-node-js-npm-mac) (from 2014) but I've never run into any issues with the official installer and I try to avoid homebrew (no good reason). These days I use docker anytime I'm working with something that's usually designed for Linux. Working with "linuxy" things is [the main reason you would use homebrew](http://computers.tutsplus.com/tutorials/homebrew-demystified-os-xs-ultimate-package-manager--mac-44884). Node isn't [a foreign thing to OSX](https://gist.github.com/DanHerbert/9520689). I prefer the installer.
@@ -26,7 +28,6 @@ Read this history of [how the redux-cli tool got started](https://github.com/dav
 npm install redux-cli -g
 ```
 
-
 ## Start a new project
 Navigate to your projects folder. If you don't have one, consider creating one `mkdir -p ~/Projects/tests`. I'm going to be pasting commands below with the assumption that you're working in a folder as valuable to you as `~/Projects/tests`.
 
@@ -44,7 +45,7 @@ cd todos-app
 npm install
 ```
 
-You can poke around if you'd like. You should read about [what's in the box](https://github.com/davezuko/react-redux-starter-kit) and [how to use it](https://suspicious.website/2016/04/29/starting-out-with-react-redux-starter-kit/) if you haven't already. For our purposes we'll be doing everyhting in the `src/` folder.
+You can poke around if you'd like. You should read about [what's in the box](https://github.com/davezuko/react-redux-starter-kit) and [how to use it](https://suspicious.website/2016/04/29/starting-out-with-react-redux-starter-kit/) if you haven't already. For our purposes we'll be doing everything in the `src/` folder.
 
 #### Rename `dumb`, `smart` and `duck` blueprints
 For fun, and to give a small taste of what blueprints are capable of, let's rename some of the default blueprints. Renaming the folders under `blueprints/` changes how you call the generators. Now, instead of calling something like `redux g dumb MyName` you would use `redux g component MyName`. It makes sense to rename these blueprints because if you look you'll see that the react-redux-starter-kit names those folders `components/`,  `containers/` and  `redux/modules/` respectively.
@@ -111,7 +112,8 @@ It's important to pay attention to what's going on here:
 
   ```js
   //..
-
+  
+  // export a function that returns a react-router config object
   export default (store) => ({
     path: 'todos', // <-- this shows up in the URL
     //...
