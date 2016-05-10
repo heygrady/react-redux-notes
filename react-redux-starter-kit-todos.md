@@ -68,7 +68,7 @@ If you're new to react-router they recommend that you:
 
 We're actually just going to be copying the [`Counter` route](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/Counter/index.js) from the boilerplate starter-kit app.
 
-### Create the files for your route
+## Create the files for the route
 We're going to eventually be storing our components, containers and modules using the [fractal project structure](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure) so we'll be creating `components/`, `containers/` and `modules/` folders inside our `routes/Todos/` folder. *Hint:* [`mkdir -p <path>`](http://unix.stackexchange.com/questions/49263/recursive-mkdir).
 
 ```bash
@@ -85,7 +85,7 @@ touch tests/routes/Todos/index.spec.js
 redux g route Todos
 ```
 
-### `src/routes/Todos/index.js`
+## Route: `src/routes/Todos/index.js`
 We need to add some boilerplate code to our route file. You can see the way the router itself is configured by checking in [`src/routes/index.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js). By default your app is configured to allow for lazy-loading of routes. This is an important consideration for large apps and it's easy enough to support it from the very beginning. You don't have to know exactly how all of this magic works but you need understand that it's important. Under the hood we're [using Webpack's code-splitting feature](https://webpack.github.io/docs/code-splitting.html) for performance.
 
 ```js
@@ -213,7 +213,7 @@ export default (store) => ({ // <-- am I a route creator?
 })
 ```
 
-#### Add our route to the router
+## Add the route to the router
 In a typical React-Redux app nothing is loaded by magic. Simply creating a route won't make it show up in the site. You can check out the parent router in [`src/routes/index.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js). You should be able to get a handle on what's happening in this file. One important consideration is how the Redux `store` is passed into each route.
 
 ```js
@@ -240,10 +240,14 @@ export const createRoutes = (store) => ({
 2. You can see that you have to call your `TodosRoute` creator function and pass in `store` manually. If you had a route that didn't need the store you could return a plain object instead of a function in your route.
 3. If you notice, this file is also just a route. You can use layouts and `childRoutes` in any route that you create. The routes you define are imported by [`src/main.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/main.js). That's the file that does all the hard work of bootstrapping your app.
 
-#### Add our route to the navigation
+## Add the route to the navigation
 You also need to manually manage your site's navigation. You can see how the default app manages the nav in [`src/components/Header/Header.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/components/Header/Header.js). Because our app uses react-router you don't have to import your route to create a link to it. You use react-router's [`Link` helper component](https://github.com/reactjs/react-router/blob/master/docs/API.md#link) instead. You may remember that we're using [react-router-redux](https://github.com/reactjs/react-router-redux) but that's an unimportant detail. In most cases you'll be working directly with react-router and only using react-router-redux for fancy things like time travel.
 
 Here we need to add a `Link` to our `/todos` route. What you put in `<Link to='/todos'` should match the `path: 'todos'` from your route. Here we're prefixing it with a `\` because it is "beneath" the home route. How you nest your routes determines how the URL path to the route is constructed.
+
+*Note:* Components that are not specific to a particular route, like the `Header` component, should be stored in the `src/components` folder.
+
+*Note:* If you look you'll notice that the `Header` component is stored in a folder, like `src/components/Header/Header.js`. You'll also see `src/components/Header/index.js`. The index file only exists as a convenience. It is a standard in Node to create an index file for a directory so that a developer can simply use `import Header from './components/Header'`. Why put the component in a folder? You'll see that the header has a `Header.scss` file right there. You might conceivably have other files related to this component. For instance, developers commonly add an `assets/` folder inside a component for storing assets that are specific to this component alone. 
 
 ```jsx
 // src/components/Header/Header.js
@@ -269,11 +273,7 @@ export const Header = () => (
 
 *Note:* You might notice the `{' · '}` in the code above. That's the [standard React way to add whitespace](https://github.com/facebook/react/issues/1643#issuecomment-45325969). Normally React will strip whitespace between elements. You might like reading about [how whitespace works in React](http://andrewhfarmer.com/how-whitespace-works-in-jsx/).
 
-### `src/routes/Todos/components/TodosView.js`
-In the `src/routes/Todos/index.js` file we referenced the `TodosView`. A view is just a component. A view is specific to a route, meaning that a route's primary component is usually considered a view. The react-redux-starter-kit has a [blueprint for views](https://github.com/davezuko/react-redux-starter-kit/tree/master/blueprints/view) that you can use with `redux g view ViewName` but we're not going to use that because it can't add files inside of a route and we want to use the fractal project layout. By default the generator creates a `${ViewName}View.js` file in the `views/` folder. We've placed our view in the `components/` folder under our route.
-
-Why? Because a view is just a component (unless it's a container). It's not necessary to break views out into another folder because it's customary to name a view component with like `${RouteName}View`. This makes it unmistakable that the component in question is the view for your route. You are likely to see different developers have different preferences for where the view is located. One reason to keep it in the components folder is that you could reasonably have a view that is a container. In that case the `views/` folder would conceal the fact that the view was a container. Meanwhile, if you keep the view in either the `components/` or `containers/` folder a developer would have a hint about what the file contains before they even open it.
-
+## Create a view
 You can easily create a view from the command line with a command like this:
 
 ```bash
@@ -287,6 +287,11 @@ touch tests/routes/Todos/components/TodosView.spec.js
 # this doesn't work yet
 redux g component TodosView --path routes/Todos
 ```
+
+## View: `src/routes/Todos/components/TodosView.js`
+In the `src/routes/Todos/index.js` file we referenced the `TodosView`. A view is just a component. A view is specific to a route, meaning that a route's primary component is usually considered a view. The react-redux-starter-kit has a [blueprint for views](https://github.com/davezuko/react-redux-starter-kit/tree/master/blueprints/view) that you can use with `redux g view ViewName` but we're not going to use that because it can't add files inside of a route and we want to use the fractal project layout. By default the generator creates a `${ViewName}View.js` file in the `views/` folder. We've placed our view in the `components/` folder under our route.
+
+Why? Because a view is just a component (unless it's a container). It's not necessary to break views out into another folder because it's customary to name a view component with like `${RouteName}View`. This makes it unmistakable that the component in question is the view for your route. You are likely to see different developers have different preferences for where the view is located. One reason to keep it in the components folder is that you could reasonably have a view that is a container. In that case the `views/` folder would conceal the fact that the view was a container. Meanwhile, if you keep the view in either the `components/` or `containers/` folder a developer would have a hint about what the file contains before they even open it.
 
 This is more straighforward file than a route because it's just a simple presentational component. You can see that we import React, import the `Footer`, `AddTodo` and `VisibleTodoList` and then export a template that simply outputs them.
 
@@ -311,23 +316,9 @@ export default TodosView
 At this point we've got a new route with a view. We're referencing a bunch of other components but we can comment that part out and see our app in action right now!
 
 ```jsx
-// src/routes/Todos/components/TodosView.js
+// @see src/routes/Todos/components/TodosView.js
 
 import React from 'react'
-
-// comment out the view for now
-
-// import Footer from './Footer'
-// import AddTodo from '../containers/AddTodo'
-// import VisibleTodoList from '../containers/VisibleTodoList'
-
-// const TodosView = () => (
-//   <div>
-//     <AddTodo />
-//     <VisibleTodoList />
-//     <Footer />
-//   </div>
-// )
 
 // return a temporary view
 const TodosView = () => (
@@ -338,21 +329,35 @@ const TodosView = () => (
 export default TodosView
 ```
 
+Here we're using the NPM script that comes with react-redux-starter-kit for launching our dev environment. If everything is working properly you should be able to navigate to your todos app and see our placeholder view.
+
 ```bash
 npm run dev
+```
+
+*Note: * If it's annoying that the dev tools open in a new window you might want to comment this feature out in `src/main.js`.
+
+```js
+// @see src/main.js
+// ...
+
+// Use Redux DevTools chrome extension
+if (__DEBUG__) {
+  // commented out to prevent opening the dev tools on page load
+  // it's annoying that it opens by default
+  // you'll probably prefer opening it in Chrome DevTools
+  // @see https://github.com/zalmoxisus/redux-devtools-extension
+  // if (window.devToolsExtension) window.devToolsExtension.open()
+}
+
+// ...
 ```
 
 # Create the Todo files
 Now that we have our route set up we just need to add in all of the files needed to complete the classic [Todo example from the Redux manual](http://redux.js.org/docs/basics/index.html). We're going to assume that you've reviewed that application. Below we're changing the files to fit better with the react-redux-starter-kit.
 
 
-## Filter Links
-These are the files needed to complete the filter links.
-
-### `src/routes/Todos/components/Footer.js`
-
-Compare to [`components/Footer.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-footer-js).
-
+## Create Footer Component
 ```bash
 mkdir -p src/routes/Todos/components
 touch src/routes/Todos/components/Footer.js
@@ -365,23 +370,26 @@ touch tests/routes/Todos/components/Footer.spec.js
 redux g component Footer --path routes/Todos
 ```
 
+## Footer: `src/routes/Todos/components/Footer.js`
+Compare to [`components/Footer.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-footer-js).
+
 ```jsx
 import React from 'react'
-import FilterLink from '../../containers/FilterLink'
+import FilterLink from '../containers/FilterLink'
 
 const Footer = () => (
   <p>
     Show:
-    {" "}
-    <FilterLink filter="SHOW_ALL">
+    {' '}
+    <FilterLink filter='SHOW_ALL'>
       All
     </FilterLink>
-    {", "}
-    <FilterLink filter="SHOW_ACTIVE">
+    {', '}
+    <FilterLink filter='SHOW_ACTIVE'>
       Active
     </FilterLink>
-    {", "}
-    <FilterLink filter="SHOW_COMPLETED">
+    {', '}
+    <FilterLink filter='SHOW_COMPLETED'>
       Completed
     </FilterLink>
   </p>
@@ -390,9 +398,7 @@ const Footer = () => (
 export default Footer
 ```
 
-### `src/routes/Todos/containers/FilterLink.js`
-Compare to [`containers/FilterLink.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-filterlink-js).
-
+## Create the FilterLinks Component
 ```bash
 mkdir -p src/routes/Todos/containers
 touch src/routes/Todos/containers/FilterLink.js
@@ -404,6 +410,9 @@ touch tests/routes/Todos/containers/FilterLink.spec.js
 # this doesn't work yet
 redux g container FilterLink --path routes/Todos
 ```
+
+## FilterLinks: `src/routes/Todos/containers/FilterLink.js`
+Compare to [`containers/FilterLink.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-filterlink-js).
 
 ```js
 import { connect } from 'react-redux'
@@ -432,9 +441,7 @@ const FilterLink = connect(
 export default FilterLink
 ```
 
-### `src/routes/Todos/components/Link.js`
-Compare to [`components/Link.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-link-js).
-
+## Create the Link Component
 ```bash
 mkdir -p src/routes/Todos/components
 touch src/routes/Todos/components/Link.js
@@ -446,6 +453,9 @@ touch tests/routes/Todos/components/Link.spec.js
 # this doesn't work yet
 redux g component Link --path routes/Todos
 ```
+
+## Link: `src/routes/Todos/components/Link.js`
+Compare to [`components/Link.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-link-js).
 
 ```jsx
 import React, { PropTypes } from 'react'
@@ -483,10 +493,7 @@ export default Link
 ## Todos Module
 These are the files needed to manage the todos state.
 
-### `src/routes/Todos/modules/todos.js`
-
-Compare to [`actions/index.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-actions-index-js) and [`reducers/todos.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-reducers-todos-js).
-
+## Create the Todos Module
 ```bash
 mkdir -p src/routes/Todos/modules
 touch src/routes/Todos/modules/todos.js
@@ -498,6 +505,9 @@ touch tests/routes/Todos/modules/todos.spec.js
 # this doesn't work yet
 redux g module todos --path routes/Todos
 ```
+
+## Todos Module: `src/routes/Todos/modules/todos.js`
+Compare to [`actions/index.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-actions-index-js) and [`reducers/todos.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-reducers-todos-js).
 
 ```js
 import { combineReducers } from 'redux'
@@ -552,11 +562,9 @@ export default combineReducers({
 ```
 
 ## Todos Form
+Here we're just taking the component straight from the manual. The react-redux-starter-kit appears to recommend [redux-form](https://github.com/erikras/redux-form) for complex forms. It's pretty easy to [get started with redux-form](http://redux-form.com/5.2.3/#/getting-started) but that is outside the scope of this document. It's likely that you would only want to use this for complex forms and consider rolling your own components for smaller interfaces, like this simple entry form.
 
-### `src/routes/Todos/containers/AddTodo.js`
-
-Compare to [`containers/AddTodo.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-addtodo-js).
-
+## Create the Todos Form
 ```bash
 mkdir -p src/routes/Todos/containers
 touch src/routes/Todos/containers/AddTodo.js
@@ -567,7 +575,17 @@ touch tests/routes/Todos/containers/AddTodo.spec.js
 
 # this doesn't work yet
 redux g container AddTodo --path routes/Todos
+
+# redux-cli supports redux-forms
+redux g form AddTodo --path routes/Todos
 ```
+
+*Note:* If you want to use redux-cli to create forms you need to intall it first: `npm install redux-forms --save`.
+
+## AddTodo: `src/routes/Todos/containers/AddTodo.js`
+
+Compare to [`containers/AddTodo.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-addtodo-js).
+
 
 ```js
 import React, { PropTypes } from 'react'
@@ -607,14 +625,12 @@ AddTodo.propTypes = {
 AddTodo = connect()(AddTodo)
 
 export default AddTodo
-
 ```
 
 ## Todos List
+These are the files needed for the Todos list.
 
-### `src/routes/Todos/containers/VisibleTodoList.js`
-Compare to [`containers/VisibleTodoList.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-visibletodolist-js).
-
+## Create the VisibleTodoList Component
 ```bash
 mkdir -p src/routes/Todos/containers
 touch src/routes/Todos/containers/VisibleTodoList.js
@@ -626,6 +642,9 @@ touch tests/routes/Todos/containers/VisibleTodoList.spec.js
 # this doesn't work yet
 redux g container VisibleTodoList --path routes/Todos
 ```
+
+## VisibleTodoList: `src/routes/Todos/containers/VisibleTodoList.js`
+Compare to [`containers/VisibleTodoList.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-visibletodolist-js).
 
 ```js
 import { connect } from 'react-redux'
@@ -671,10 +690,7 @@ const VisibleTodoList = connect(
 
 export default VisibleTodoList
 ```
-
-### `src/routes/Todos/components/TodoList.js`
-Compare to [`components/TodoList.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-todolist-js).
-
+## Create the TodoList Component
 ```bash
 mkdir -p src/routes/Todos/components
 touch src/routes/Todos/components/TodoList.js
@@ -686,6 +702,10 @@ touch tests/routes/Todos/components/TodoList.spec.js
 # this doesn't work yet
 redux g component TodoList --path routes/Todos
 ```
+
+
+## TodoList: `src/routes/Todos/components/TodoList.js`
+Compare to [`components/TodoList.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-todolist-js).
 
 ```jsx
 import React, { PropTypes } from 'react'
@@ -718,9 +738,7 @@ TodoList.propTypes = {
 export default TodoList
 ```
 
-### `src/routes/Todos/components/Todo.js`
-Compare to [`components/Todo.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-todo-js).
-
+## Create the Todo Component
 ```bash
 mkdir -p src/routes/Todos/components
 touch src/routes/Todos/components/Todo.js
@@ -732,6 +750,9 @@ touch tests/routes/Todos/components/Todo.spec.js
 # this doesn't work yet
 redux g component Todo --path routes/Todos
 ```
+
+## Todo: `src/routes/Todos/components/Todo.js`
+Compare to [`components/Todo.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-todo-js).
 
 ```jsx
 import React, { PropTypes } from 'react'
