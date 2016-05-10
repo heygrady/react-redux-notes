@@ -1,5 +1,5 @@
 # React Redux Starter Kit Todos Tutorial
-This is my example of using [react-redux-starter-kit](https://github.com/davezuko/react-redux-starter-kit) and [redux-cli](https://github.com/SpencerCDixon/redux-cli) to replicate [the Todos app from the Redux manual](http://redux.js.org/docs/basics/ExampleTodoList.html). I'll go through how I wish the CLI worked because in many places the CLI doesn't match the recommended way to develop a proper app. Or... it doesn't yet support routes or the [fractal design pattern](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure) of routes. This is partially because the [blueprints included with react-redux-starter-kit](https://github.com/davezuko/react-redux-starter-kit/tree/master/blueprints) don't include routes. Partially because [you can't add a `--path` option](https://github.com/SpencerCDixon/redux-cli/issues/72) (like `redux g module myName --path routes/my-route`) with redux-cli yet. It's probably worse that *components*, *containers* and *modules* are called *dumb*, *smart* and *duck* in the default blueprints. But we can fix that ourselves for our own projects.
+This is my example of using [react-redux-starter-kit](https://github.com/davezuko/react-redux-starter-kit) and [redux-cli](https://github.com/SpencerCDixon/redux-cli) to replicate [the Todos app from the Redux manual](http://redux.js.org/docs/basics/ExampleTodoList.html). I'll go through how I wish the CLI worked because in many places the CLI doesn't doesn't yet support the [fractal design pattern](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure) of routes. This is partially because the [default blueprints included with react-redux-starter-kit](https://github.com/davezuko/react-redux-starter-kit/tree/master/blueprints) don't include routes. Partially because [you can't use a `--path` option](https://github.com/SpencerCDixon/redux-cli/issues/72) (like `redux g module myName --path routes/my-route`) with redux-cli yet. It's probably worse that *components*, *containers* and *modules* are called *dumb*, *smart* and *duck* in the default blueprints. But we can fix that ourselves for our own projects.
 
 ## This is a hands-on tutorial
 I'm going to write this as if you have your command line open (you should [probably](http://apple.stackexchange.com/questions/25143/what-is-the-difference-between-iterm2-and-terminal) be using [iTerm2](https://www.iterm2.com/) and you're following along. This document is designed for getting you up to speed on the react-redux-starter-kit ecosystem. There *will be* other articles if you're interested in [writing an app with sagas](./redux-sagas-todos.md) or [connecting sagas to an api](./redux-sagas-data.md).
@@ -16,7 +16,7 @@ sudo chown -R $(whoami) $(npm config get prefix)/{lib/node_modules,bin,share}
 ```
 
 #### Install redux-cli
-You need to install [redux-cli](https://github.com/SpencerCDixon/redux-cli) as a global npm package. This is currently a barebones command-line tool but it does a few really nice things for us.  Right now it's mostly useful for initializing a new project but it's clear that this tool will be expanding over time. The major innovation of redux-cli tool over something like [Yeoman](http://yeoman.io/generators/) is that the blueprints you use in your project are checked into your project. There is a strong encouragement for you to [manage the blueprints in your project](https://github.com/SpencerCDixon/redux-cli#creating-blueprints). This is actually a key advancement that is possibly easy to overlook. Being able to easily customize the default generators and add your own is a huge advancement.
+You need to install [redux-cli](https://github.com/SpencerCDixon/redux-cli) as a global npm package. This is currently a barebones command-line tool.  Right now it's mostly useful for initializing a new project but it's clear that this tool will be expanding over time. The major innovation of redux-cli tool over something like [Yeoman](http://yeoman.io/generators/) is that there is a strong encouragement for you to [manage the blueprints from within your project](https://github.com/SpencerCDixon/redux-cli#creating-blueprints). This is actually a key advancement that is possibly easy to overlook. Being able to easily customize the default generators and create new blueprints is a huge advancement.
 
 The [react-reduct-starter-kit includes default blueprints](https://github.com/davezuko/react-redux-starter-kit/tree/master/blueprints).
 
@@ -37,34 +37,55 @@ redux new todos-app
 # puts the latest react-redux-starter-kit in there
 # @see https://github.com/SpencerCDixon/redux-cli#getting-started
 
-#navigate into your app
+# navigate into your app
 cd todos-app
+
+# install npm modules
+npm install
 ```
 
 You can poke around if you'd like. You should read about [what's in the box](https://github.com/davezuko/react-redux-starter-kit) and [how to use it](https://suspicious.website/2016/04/29/starting-out-with-react-redux-starter-kit/) if you haven't already. For our purposes we'll be doing everyhting in the `src/` folder.
 
+#### Rename `dumb`, `smart` and `duck` blueprints
+For fun, and to give a small taste of what blueprints are capable of, let's rename some of the default blueprints. Renaming the folders under `blueprints/` changes how you call the generators. Now, instead of calling something like `redux g dumb MyName` you would use `redux g component MyName`. It makes sense to rename these blueprints because if you look you'll see that the react-redux-starter-kit names those folders `components/`,  `containers/` and  `redux/modules/` respectively.
+
+```bash
+mv blueprints/dumb blueprints/component
+mv blueprints/smart blueprints/container
+mv blueprints/duck blueprints/module
+
+# see if it works
+redux g component fun
+```
+
 ## Create a new route
-It's currently [not possible to add a route with redux-cli](https://github.com/SpencerCDixon/redux-cli/issues/6) but that should be getting fixed eventually. For now we'll have to make it by hand. We're creating a Todo app so we'll create a "Todo" route. We're presuming that you're fairly new to React-Redux so we'll be leaving the boilerplate routes in place for now because they're a good reference. There's a few steps involved in creating a new route and it's ok if youdon't fully understand routes right away. It's important to know that we're using [react-router](https://github.com/reactjs/react-router) with the [react-router-redux](https://github.com/reactjs/react-router-redux) bindings.
+It's currently [not possible to add a route using redux-cli](https://github.com/SpencerCDixon/redux-cli/issues/6) but that should be getting fixed eventually. For now we'll have to make it by hand. We're creating a Todo app so we'll create a "Todo" route. We're presuming that you're fairly new to React-Redux so we'll be leaving the boilerplate routes in place for now because they're a good reference. There's a few steps involved in creating a new route and it's ok if you don't fully understand routes right away. It's important to know that we're using [react-router](https://github.com/reactjs/react-router) with the [react-router-redux](https://github.com/reactjs/react-router-redux) bindings.
 
 If you're new to react-router they recommend that you:
-- [Read the react-router tutorial **first**](https://github.com/reactjs/react-router-tutorial)
+- [Read the react-router tutorial *first*](https://github.com/reactjs/react-router-tutorial)
 - [Read the react-router docs](https://github.com/reactjs/react-router/tree/master/docs)
 
-We're actually just going to be copying what the included [`Counter` route](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/Counter/index.js) contains.
+We're actually just going to be copying the [`Counter` route](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/Counter/index.js) from the boilerplate starter-kit app.
 
 ### Create the files for your route
 We're going to eventually be storing our components, containers and modules using the [fractal project structure](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure) so we'll be creating `components/`, `containers/` and `modules/` folders inside our `routes/Todos/` folder. *Hint:* [`mkdir -p <path>`](http://unix.stackexchange.com/questions/49263/recursive-mkdir).
 
 ```bash
 mkdir -p src/routes/Todos/components
-mkdir -p src/routes/Todos/containers
-mkdir -p src/routes/Todos/modules
 touch src/routes/Todos/components/TodosView.js
 touch src/routes/Todos/index.js
+
+# don't forget to create tests
+mkdir -p tests/routes/Todos/components
+touch tests/routes/Todos/components/TodosView.spec.js
+touch tests/routes/Todos/index.spec.js
+
+# this doesn't work yet 
+redux g route Todos
 ```
 
-### Todos Route: `src/routes/Todos/index.js`
-We need to add some boilerplate code to our route file. You can see the way the router itself is configured by checking in the [`src/routes/index.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js) file. By default your app is configured to allow for lazy-loading of routes. This is an important consideration for large apps and it's easy enough to support it from the very beginning. You don't have to know exactly how all of this magic works but you need understand that it's important. Under the hood we're [using Webpack's code-splitting feature](https://webpack.github.io/docs/code-splitting.html) for performance.
+### `src/routes/Todos/index.js`
+We need to add some boilerplate code to our route file. You can see the way the router itself is configured by checking in [`src/routes/index.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js). By default your app is configured to allow for lazy-loading of routes. This is an important consideration for large apps and it's easy enough to support it from the very beginning. You don't have to know exactly how all of this magic works but you need understand that it's important. Under the hood we're [using Webpack's code-splitting feature](https://webpack.github.io/docs/code-splitting.html) for performance.
 
 ```js
 import { injectReducer } from '../../store/reducers'
@@ -97,7 +118,7 @@ It's important to pay attention to what's going on here:
   })
   ```
 
-2. We need to specify a [`getComponent(nextState, cb)`](https://github.com/reactjs/react-router/blob/master/docs/API.md#getcomponentnextstate-callback) function in order to lazy-load our route. This is specified as being designed for code-splitting in the react-router manual. We're going to be using [Webpack for code-splitting](https://webpack.github.io/docs/code-splitting.html). If you want to specify a route without using aync loading you can use [`component`](https://github.com/reactjs/react-router/blob/master/docs/API.md#component) instead.
+2. We need to specify a [`getComponent(nextState, cb)`](https://github.com/reactjs/react-router/blob/master/docs/API.md#getcomponentnextstate-callback) function in order to lazy-load our route. This is designed for code-splitting as specified in the react-router manual. We're going to be using [Webpack for code-splitting](https://webpack.github.io/docs/code-splitting.html). If you want to specify a route without using aync loading you can use [`component`](https://github.com/reactjs/react-router/blob/master/docs/API.md#component) instead (but you should use async unless you have a good reason not to).
 
   ```js
   // ...
@@ -109,9 +130,9 @@ It's important to pay attention to what's going on here:
     // @see https://github.com/reactjs/react-router/blob/master/docs/API.md#getcomponentnextstate-callback
     getComponent (nextState, cb) {
 
-      // ...
+      // ... TodosView
 
-      // be sure to pass your component to the callback
+      // be sure to pass your view component to the callback
       // null means there weren't any errors
       cb(null, TodosView)
 
@@ -120,22 +141,23 @@ It's important to pay attention to what's going on here:
   })
   ```
 
-```js
-// ...
+  ```js
+  // ...
 
-// you could load your view normally
-// if you don't need async for some reason
-import TodosView from './components/TodosView'
-export default (store) => ({
-  path: 'todos',
+  // you could import your view normally
+  // if you don't need async for some reason
+  import TodosView from './components/TodosView'
 
-  // it's pretty straightforward
-  // if you don't need code-splitting
-  component: TodosView
-})
-```
+  export default (store) => ({
+    path: 'todos',
 
-3. We need to [name our Webpack chunk](https://github.com/webpack/webpack/tree/master/examples/named-chunks). Webpack supports [code-splitting](https://webpack.github.io/docs/code-splitting.html) through a specialty `require.ensure()` function. If you've been reading about Node then you've probably heard about using the `require()` function for [loading modules](https://nodejs.org/api/modules.html). If you've been reading about ES6 then you' probably know you should *usually* [use `import` instead of `require`](http://stackoverflow.com/questions/31354559/using-node-js-require-vs-es6-import-export). The `require.ensure()` function is particular to Webpack, not Node, and solves a specific use-case for lazy-loading parts of your app for performance reasons. If it bothers you that we're [using `require` instead of `import`](https://webpack.github.io/docs/code-splitting.html#es6-modules) that's a good instinct but in this case `require.ensure()` is the only way to do what we need.
+    // it's pretty straightforward
+    // if you don't need code-splitting
+    component: TodosView
+  })
+  ```
+
+3. We need to [name our Webpack chunk](https://github.com/webpack/webpack/tree/master/examples/named-chunks). Webpack supports [code-splitting](https://webpack.github.io/docs/code-splitting.html) through a specialty `require.ensure()` function. If you've been reading about Node then you've probably heard about using the `require()` function for [loading modules](https://nodejs.org/api/modules.html). If you've been reading about ES6 then you probably know you should *usually* [use `import` instead of `require`](http://stackoverflow.com/questions/31354559/using-node-js-require-vs-es6-import-export). The `require.ensure()` function is particular to Webpack, not Node, and solves a specific use-case for lazy-loading parts of your app for performance reasons. If it bothers you that we're [using `require` instead of `import`](https://webpack.github.io/docs/code-splitting.html#es6-modules) that's a good instinct but in this case `require.ensure()` is the only way to do what we need.
 
   ```js
   // ...
@@ -150,14 +172,14 @@ export default (store) => ({
       require.ensure([], (require) => {
 
         // require.ensure passes the require function for us to use.
-        //...
+        // ...
 
       }, 'todos') // <-- this names the webpack chunk for this route
     }
   })
   ```
 
-4. We need to import our view and our module using the `require` function passed to us by ` require.ensure`. You'll notice that we're [tacking a `.default` on the end of our `require()` function](https://github.com/esnext/es6-module-transpiler/issues/85). That's required to cover a gap in how `import` works vs `require`. You can read in depth about [ES6 modules](http://www.2ality.com/2014/09/es6-modules-final.html) if you'd like. The key take away is that **if you want to import an ES6 module programatically you have to use `require()`**. And if you use `require()` to import an ES6 module, you will receive an object where each key matches one of your named exports (ES6 modules support [named exports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export) and `require()` doesn't). In this case we need to use the `default` export, so we need to use the `.default` property. If you've ever wondered [how to import every file in a folder in Node](http://stackoverflow.com/questions/5364928/node-js-require-all-files-in-a-folder), that's what `require()` is for.
+4. We need to import our view and our module using the `require` function passed to us by `require.ensure`. You'll notice that we're [tacking a `.default` on the end of our `require()` function](https://github.com/esnext/es6-module-transpiler/issues/85). That's required to cover a gap in how `import` works vs `require`. You can read in depth about [ES6 modules](http://www.2ality.com/2014/09/es6-modules-final.html) if you'd like. The key take away is that **if you want to import an ES6 module programatically you have to use `require()`**. And if you use `require()` to import an ES6 module, you will receive an object where each key matches one of your named exports (ES6 modules support [named exports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export) and `require()` doesn't). In this case we need to use the `default` export, so we need to use the `.default` property. *Note:* If you've ever wondered [how to import every file in a folder](http://stackoverflow.com/questions/5364928/node-js-require-all-files-in-a-folder), that's what `require()` is for.
 
   ```js
   // ...
@@ -168,7 +190,7 @@ export default (store) => ({
   // ...
   ```
 
-5. We need to inject our reducer into the store using the `injectReducer(store, map)` function. This function comes with the react-redux-starter-kit in the [`src/store/reducers.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/store/reducers.js) file. This construct allows for lazy-loaded routes to add reducers to the Redux store after the initial page load. There's not much magic going on there but if you poke around and see `asyncReducers` mentioned in the code it's referring to the reducer from a route that was loaded as an asynchronous chunk by Webpack. **Important:** the `key` specifies a key on the store that the reducers in your route will inherit from. It's similar in concept to what [`combineReducers()`](http://redux.js.org/docs/api/combineReducers.html) does.
+5. We need to inject our reducer into the store using the `injectReducer(store, map)` function. This function comes with the react-redux-starter-kit in [`src/store/reducers.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/store/reducers.js). This allows for lazy-loaded routes to add reducers to the Redux store after the initial page load. There's not much magic going on there but if you poke around and see `asyncReducers` mentioned in the code it's referring to list of reducers from routes that were loaded as asynchronous chunks by Webpack. **Important:** the `key` specifies a key on the store that the reducers in your route will inherit from. It's similar in concept to what [`combineReducers()`](http://redux.js.org/docs/api/combineReducers.html) does.
 
   ```js
   import { injectReducer } from '../../store/reducers'
@@ -181,10 +203,19 @@ export default (store) => ({
   // ...
   ```
 
-#### Add our route to the router
-In a typical React-Redux app nothing is loaded by magic. Simply creating a route won't make it show up in the site. You can check out the parent router in [`src/routes/index.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js).
+*Note:* If you notice, our "route" is a function that accepts `store` and returns a plain object. If you wanted to be pedantic you might call this a routeCreator instead of a route. It hardly matters what you call it but passing in the store this way is an important part of making Redux available to the containers in your route.
 
 ```js
+export default (store) => ({ // <-- am I a route creator?
+  // ... 
+})
+```
+
+#### Add our route to the router
+In a typical React-Redux app nothing is loaded by magic. Simply creating a route won't make it show up in the site. You can check out the parent router in [`src/routes/index.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js). You should be able to get a handle on what's happening in this file. One important consideration is how the Redux `store` is passed into each route.
+
+```js
+// src/routes/index.js
 // ...
 import Home from './Home'
 import CounterRoute from './Counter'
@@ -203,12 +234,17 @@ export const createRoutes = (store) => ({
 // ...
 ```
 
+1. You can see that `Home` is specified as the `indexRoute`. You can also see there is a `CoreLayout` included as the `component`. This is how your app can provide a "layout" for things like managing the global header and footer.
+2. You can see that you have to call your `TodosRoute` creator function and pass in `store` manually. If you had a route that didn't need the store you could return a plain object instead of a function in your route.
+3. If you notice, this file is also just a route. You can use layouts and `childRoutes` in any route that you create. The routes you define are imported by [`src/main.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/main.js). That's the file that does all the hard work of bootstrapping your app.
+
 #### Add our route to the navigation
-You also need to manually manage your site's navigation. You can see how the default app manages the nav in [`src/components/Header/Header.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/components/Header/Header.js). Because our app uses the react-router, you don't have to import your route to create a link to it. You use the react-router [`Link` helper component](https://github.com/reactjs/react-router/blob/master/docs/API.md#link) instead. You may remember that we're using [react-router-redux](https://github.com/reactjs/react-router-redux) by default. In most cases you'll be working directly with react-router and only using react-router-redux for fancy things like time travel.
+You also need to manually manage your site's navigation. You can see how the default app manages the nav in [`src/components/Header/Header.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/components/Header/Header.js). Because our app uses react-router you don't have to import your route to create a link to it. You use react-router's [`Link` helper component](https://github.com/reactjs/react-router/blob/master/docs/API.md#link) instead. You may remember that we're using [react-router-redux](https://github.com/reactjs/react-router-redux) but that's an unimportant detail. In most cases you'll be working directly with react-router and only using react-router-redux for fancy things like time travel.
 
 Here we need to add a `Link` to our `/todos` route. What you put in `<Link to='/todos'` should match the `path: 'todos'` from your route. Here we're prefixing it with a `\` because it is "beneath" the home route. How you nest your routes determines how the URL path to the route is constructed.
 
 ```jsx
+// src/components/Header/Header.js
 // ...
 export const Header = () => (
   <div>
@@ -231,8 +267,8 @@ export const Header = () => (
 
 *Note:* You might notice the `{' · '}` in the code above. That's the [standard React way to add whitespace](https://github.com/facebook/react/issues/1643#issuecomment-45325969). Normally React will strip whitespace between elements. You might like reading about [how whitespace works in React](http://andrewhfarmer.com/how-whitespace-works-in-jsx/).
 
-### Todos View: `src/routes/Todos/components/TodosView.js`
-In the `src/routes/Todos/index.js` file we referenced the `TodosView`. A view is just a component. A view is specific to a route, meaning that a route's primary component is usually considered a view. The react-redux-starter-kit has a [blueprint for views](https://github.com/davezuko/react-redux-starter-kit/tree/master/blueprints/view) that you can use with `redux g view ViewName` but we're not going to use that because it can't add file inside of a route and we want to use the fractal project layout. By default the generator create a `${ViewName}View.js` file in the `views/` folder. We've placed our view in the `components/` folder under our route.
+### `src/routes/Todos/components/TodosView.js`
+In the `src/routes/Todos/index.js` file we referenced the `TodosView`. A view is just a component. A view is specific to a route, meaning that a route's primary component is usually considered a view. The react-redux-starter-kit has a [blueprint for views](https://github.com/davezuko/react-redux-starter-kit/tree/master/blueprints/view) that you can use with `redux g view ViewName` but we're not going to use that because it can't add files inside of a route and we want to use the fractal project layout. By default the generator creates a `${ViewName}View.js` file in the `views/` folder. We've placed our view in the `components/` folder under our route.
 
 Why? Because a view is just a component (unless it's a container). It's not necessary to break views out into another folder because it's customary to name a view component with like `${RouteName}View`. This makes it unmistakable that the component in question is the view for your route. You are likely to see different developers have different preferences for where the view is located. One reason to keep it in the components folder is that you could reasonably have a view that is a container. In that case the `views/` folder would conceal the fact that the view was a container. Meanwhile, if you keep the view in either the `components/` or `containers/` folder a developer would have a hint about what the file contains before they even open it.
 
@@ -269,12 +305,16 @@ const TodosView = () => (
 export default TodosView
 ```
 
-#### Testing it all out
+## Testing it all out
 At this point we've got a new route with a view. We're referencing a bunch of other components but we can comment that part out and see our app in action right now!
 
 ```jsx
+// src/routes/Todos/components/TodosView.js
+
 import React from 'react'
+
 // comment out the view for now
+
 // import Footer from './Footer'
 // import AddTodo from '../containers/AddTodo'
 // import VisibleTodoList from '../containers/VisibleTodoList'
@@ -294,6 +334,10 @@ const TodosView = () => (
   </div>
 )
 export default TodosView
+```
+
+```bash
+npm run dev
 ```
 
 # Create the Todo files
