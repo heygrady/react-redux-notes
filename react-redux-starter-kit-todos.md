@@ -4,7 +4,7 @@ This is an example of using [react-redux-starter-kit](https://github.com/davezuk
 We'll be using redux-cli but it doesn't do very much yet. I'll leave notes on how I wish the CLI worked because the CLI doesn't doesn't yet support the [fractal design pattern](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure). This is partially because the [default blueprints included with react-redux-starter-kit](https://github.com/davezuko/react-redux-starter-kit/tree/master/blueprints) don't include routes. And because [you can't use a `--path` option](https://github.com/SpencerCDixon/redux-cli/issues/72) with redux-cli yet. It's probably worse that *components*, *containers* and *modules* are called *dumb*, *smart* and *duck* in the default blueprints. Thankfully we can fix that ourselves for our own projects.
 
 ## This is a hands-on tutorial
-I'm going to write this as if you have your command line open  and you're following along (you should [probably](http://apple.stackexchange.com/questions/25143/what-is-the-difference-between-iterm2-and-terminal) be using [iTerm2](https://www.iterm2.com/)). This document is designed for getting you up to speed on the react-redux-starter-kit ecosystem. There *will be* other articles if you're interested in [writing an app with sagas](./redux-sagas-todos.md) or [connecting sagas to an api](./redux-sagas-data.md).
+I'm going to write this as if you have your command line open (and you're following along (you should [probably](http://apple.stackexchange.com/questions/25143/what-is-the-difference-between-iterm2-and-terminal) be using [iTerm2](https://www.iterm2.com/)). This document is designed for getting you up to speed on the react-redux-starter-kit ecosystem. There *will be* other articles if you're interested in [writing an app with sagas](./redux-sagas-todos.md) or [connecting sagas to an api](./redux-sagas-data.md).
 
 #### Install Node
 It's a no-brainer but you should have the [current version of Node](https://nodejs.org/en/) installed. If you're using an other version of Node, there is no reason not to upgrade your local to version 6 (or whatever is currently listed), take a moment and upgrade. It's as easy as downloading the latest installer and double-clicking it. Some people [recommend homebrew to install Node](http://blog.teamtreehouse.com/install-node-js-npm-mac) (from 2014) but I've never run into any issues with the official installer and I try to avoid homebrew (no good reason). These days I use docker anytime I'm working with something that's usually designed for Linux. Working with "linuxy" things is [the main reason you would use homebrew](http://computers.tutsplus.com/tutorials/homebrew-demystified-os-xs-ultimate-package-manager--mac-44884). Node isn't [a foreign thing to OSX](https://gist.github.com/DanHerbert/9520689). I prefer the installer.
@@ -28,6 +28,26 @@ Read this history of [how the redux-cli tool got started](https://github.com/dav
 npm install redux-cli -g
 ```
 
+#### Install eslint for your editor
+The react-redux-starter-kit comes configured to use [eslint](http://eslint.org/) out of the box. Linting tools have gotten really good and eslint is no exception. There are lots of tutorials for [configuring eslint for your editor](http://www.google.com/search?q=sublime+text+3+eslint). The important thing to note is that the [latest versions of eslint](http://eslint.org/blog/2016/02/eslint-v2.0.0-released) are really easy to configure, so make sure to follow a recent tutorial. If there are a ton of steps then it's probably an outdated tutorial.
+
+The [eslint plugin for SublimeLinter](https://github.com/roadhump/SublimeLinter-eslint) works out of the box for a react-redux-starter-kit project. It's probably the best option if you're using [Sublime Text](https://www.sublimetext.com/3) ([cool kids are switching](http://denysdovhan.com/atom-vs-x/) to [Atom](https://atom.io/) which also has an [eslint plugin](https://atom.io/packages/linter-eslint)). If you have already started a new project and run `npm install` (see below) you shouldn't need any further configuration. Under the hood the eslint plugin for SublimeLinter uses the eslint that is installed in your project and uses the configuration in your project's `.eslintrc` file.
+
+If you'd like to install eslint globally, the only caveat is that you also need to install the eslint plugins you use globally as well. You may enjoy reading through the [`.eslintrc` that ships with react-redux-starter-kit](https://github.com/davezuko/react-redux-starter-kit/blob/master/.eslintrc). *Note:* When you install eslint globally you also need to globally install any plugins that are in your `.eslintrc` file. However, eslint is usually installed *locally* (in your project's `node_modules/` folder). You shouldn't need to install it globally.
+
+```bash
+# (optional) install eslint globally
+npm install -g eslint \
+  eslint-config-standard \
+  eslint-config-standard-react \
+  eslint-plugin-babel \
+  eslint-plugin-promise \
+  eslint-plugin-react \
+  eslint-plugin-standard
+```
+
+*Note:* If you're asking "I installed it, now what?", go to `Tools > SublimeLinter > Show Errors On Save` in the Sublime menu. You want to make sure that "Show Errors On Save" is checked.
+
 ## Start a new project
 Navigate to your projects folder. If you don't have one, consider creating one `mkdir -p ~/Projects/tests`. I'm going to be pasting commands below with the assumption that you're working in a folder as valuable to you as `~/Projects/tests`.
 
@@ -45,10 +65,10 @@ cd todos-app
 npm install
 ```
 
-You can poke around if you'd like. You should read about [what's in the box](https://github.com/davezuko/react-redux-starter-kit) and [how to use it](https://suspicious.website/2016/04/29/starting-out-with-react-redux-starter-kit/) if you haven't already. For our purposes we'll be doing everything in the `src/` folder.
+You can poke around if you'd like. You should read about [what's in the box](https://github.com/davezuko/react-redux-starter-kit) and [how to use it](https://suspicious.website/2016/04/29/starting-out-with-react-redux-starter-kit/) if you haven't already. For our purposes we'll be working in the `src/` folder.
 
 #### Rename `dumb`, `smart` and `duck` blueprints
-For fun, and to give a small taste of what blueprints are capable of, let's rename some of the default blueprints. Renaming the folders under `blueprints/` changes how you call the generators. Now, instead of calling something like `redux g dumb MyName` you would use `redux g component MyName`. It makes sense to rename these blueprints because if you look you'll see that the react-redux-starter-kit names those folders `components/`,  `containers/` and  `redux/modules/` respectively.
+For fun -- and to give a small taste of what blueprints are capable of -- let's rename some of the default blueprints. Renaming the folders under `blueprints/` changes how you call the generators. Now instead of calling something like `redux g dumb MyName` you would use `redux g component MyName`. It makes sense to rename these blueprints because if you look you'll see that the react-redux-starter-kit names those folders `components/`,  `containers/` and  `redux/modules/` respectively.
 
 ```bash
 mv blueprints/dumb blueprints/component
@@ -142,6 +162,8 @@ It's important to pay attention to what's going on here:
     }
   })
   ```
+  
+  *Note:* If you feel like you don't need code splitting you can simplify your route significantly
 
   ```js
   // ...
@@ -159,7 +181,7 @@ It's important to pay attention to what's going on here:
   })
   ```
 
-3. We need to [name our Webpack chunk](https://github.com/webpack/webpack/tree/master/examples/named-chunks). Webpack supports [code-splitting](https://webpack.github.io/docs/code-splitting.html) through a specialty `require.ensure()` function. If you've been reading about Node then you've probably heard about using the `require()` function for [loading modules](https://nodejs.org/api/modules.html). If you've been reading about ES6 then you probably know you should *usually* [use `import` instead of `require`](http://stackoverflow.com/questions/31354559/using-node-js-require-vs-es6-import-export). The `require.ensure()` function is particular to Webpack, not Node, and solves a specific use-case for lazy-loading parts of your app for performance reasons. If it bothers you that we're [using `require` instead of `import`](https://webpack.github.io/docs/code-splitting.html#es6-modules) that's a good instinct but in this case `require.ensure()` is the only way to do what we need.
+3. We need to [name our Webpack chunk](https://github.com/webpack/webpack/tree/master/examples/named-chunks). Webpack supports [code-splitting](https://webpack.github.io/docs/code-splitting.html) through a specialty `require.ensure()` function. If you've been reading about Node then you've probably heard about using the `require()` function for [loading modules](https://nodejs.org/api/modules.html). If you've been reading about ES6 then you probably know you should *usually* [use `import` instead of `require`](http://stackoverflow.com/questions/31354559/using-node-js-require-vs-es6-import-export). The `require.ensure()` function is particular to Webpack, not Node, and solves a specific use-case for lazy-loading parts of your app for performance reasons. If it bothers you that we're [using `require` instead of `import`](https://webpack.github.io/docs/code-splitting.html#es6-modules) that's a good instinct but in this case `require.ensure()` is the only way to do what we need. Here's where this [code-splitting idea came from](https://github.com/reactjs/redux/issues/37).
 
   ```js
   // ...
