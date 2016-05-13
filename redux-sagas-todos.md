@@ -1,7 +1,7 @@
 # Redux Saga Todos Tutorial
-In this tutorial we're going to implement [Redux Saga](http://yelouafi.github.io/redux-saga/) in the same [Todos app from the previous document](./react-redux-starter-kit-todos.md). In fact, we're promarily going to be editing [`modules/todos.js`](./react-redux-starter-kit-todos.md#todos-module-srcroutestodosmodulestodosjs) to replace the reducers with sagas.
+In this tutorial we're going to implement [Redux Saga](http://yelouafi.github.io/redux-saga/) in the same [Todos app from the previous document](./react-redux-starter-kit-todos.md). In fact, we're primarily going to be editing [`modules/todos.js`](./react-redux-starter-kit-todos.md#todos-module-srcroutestodosmodulestodosjs) to add sagas.
 
-It's going to be lightly superficial to remove reducers and use sagas instead. The power of sagas doesn't become aparent until you hook it to an API, which we'll be doing in the nest step. This time around we're going to get sagas integrated into our app so that we can focus on the API portion of it later. If you try to use Redux Saga for the first time it can be intimidating because it jumps right into using the API. We're going to work up to it slowly.
+The power of sagas doesn't become aparent until you hook it to an API, which we'll be doing in the nest step. This time around we're going to get sagas integrated into our app so that we can focus on the API portion of it later. If you try to use Redux Saga for the first time it can be intimidating because most tutorials jump right into [using redux-sage to interact with an API](https://github.com/yelouafi/redux-saga#usage-example). We're going to work up to it slowly.
 
 If you want to get into Redux Saga, they have a [great beginner's tutorial](http://yelouafi.github.io/redux-saga/docs/introduction/BeginnerTutorial.html). You may also want to read some of their [saga background links](http://yelouafi.github.io/redux-saga/docs/introduction/SagaBackground.html).
 
@@ -15,11 +15,11 @@ Test this example out in the online [JavaScript REPL](https://repl.it/CQPk/1)
 
 ```js
 // A generator function has a star
-function * test() {
+function * test () {
   // you mark the "steps" with yield
   yield 'hello'
   yield 'goodbye'
-  return 'done' // <-- you don't normally return something
+  return 'done' // <-- you don't normally return something this way, but you can
 }
 
 // calling a generator function returns a generator object
@@ -43,60 +43,21 @@ You probably want to read about sagas to get [an authoratative definition](https
 
 Another way to think about sagas is as action routers. They're not quite the same as asynchronous reducers because they don't update to the store, they only listen to actions.
 
-Here's some important notes about sagas.
+Here's some important notes about sagas:
 
 1. Sagas should not update the store directly, that's what a reducer is for.
 2. Sagas are for fielding actions *before* they get to reducers, that's why it connects to redux as middleware.
 3. Redux-saga uses weird terminology like `put` instead of `dispatch` and `takeEvery` instead of `handle`.
 4. Iterating generators is not automatic but redux-saga manages that for you, that's why you normally don't have to call [`next()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator/next) on your sagas, redux-sagas does that. Your saga should `yield` a [redux-saga effect](http://yelouafi.github.io/redux-saga/docs/basics/DeclarativeEffects.html).
 
-Here's a generic module that makes use of sagas.
-
-```js
-import { combineReducers } from 'redux'
-import { createAction, handleActions } from 'redux-actions'
-import { takeEvery, delay } from 'redux-saga'
-import { put } from 'redux-saga/effects'
-
-// actions and action creators
-const MY_ACTION = 'MY_ACTION'
-const myAction = createAction(MY_ACTION)
-
-const MY_ASYNC_ACTION = 'MY_ASYNC_ACTION'
-const myAsyncAction = createAction(MY_ASYNC_ACTION)
-
-// sagas
-function * mySaga ({ payload }) {
-  yield delay(1000) // <--- returns an effect that proceeds after a delay
-  yield put(myAction(payload)) // <-- returns an effect that calls an action
-}
-
-// reducers
-const myReducer = handleActions({
-  [MY_ACTION]: (store, action) => ({ result: true })
-}, {})
-
-// combine sagas
-export function * rootSaga () {
-  yield [
-    // combine all of your module's sagas
-    yield * takeEvery(MY_ASYNC_ACTION, mySaga)
-    // ^-- calls the myGenerator function on MY_ASYNC_ACTION
-  ]
-}
-
-// combine reducers
-export default combineReducers({
-  // combine all of your module's reducers
-  myReducer // <-- recieves store.myReducer as store
-})
-```
-
 ## Install Redux Saga
 Let's install [redux-saga](https://github.com/yelouafi/redux-saga):
 
 ```bash
 npm install redux-saga --save
+
+# you may want to install other common packages for working with modules
+npm install redux-actions reselect --save
 ```
 
 ## Apply Saga Middleware
@@ -231,6 +192,99 @@ export default (store) => ({
   }
 })
 ```
+
+## Generic Module
+Before we try to implement a saga in our sample app it's important to go over what a generic module looks like. A module is the redux version of a "model" from a traditional MVC app. Of course it's not *exactly* a model but you can see that all of the main pieces are there for working with data.
+
+If you're following my anology, you use a selector in place of a getter. It reads a value. Techically you can store data in redux however you want and there are numerous ways to read data back. In practice you will probably be organizing your module to look similar to what you'd see with something like you'd see in an [Ember Data Model](http://emberjs.com/api/data/classes/DS.Model.html).
+
+If a selector is a getter, then what is a setter? The short answer is "reducers" but that's not the whole story. Typically you don't call a reducer directly, instead you call an action which then gets dispatched to a reducer. In redux the simple act of updating an entity is turned into a complex maze of actions, thunks and sagas until it eventually reaches a reducer and updates the application state. Of course that's the power of redux. When you use something like Ember Data it is very easy to get and set a value on a model. But Ember Data itself does a tremendous amount of work to manage all of the underlying side effects -- sometimes it's difficult to get Ember Data to do what you want and you end up framework-fighting. In redux there's no magic going on and you have to manage those side effects yourself. That makes it slightly harder to get going but actually result in better performing code and completely removes framework-fighting.
+
+1. Selectors are for reading data from the store. We use [reselect](https://github.com/reactjs/reselect).
+2. Actions are the first step in writing to the store. We use [redux-actions](https://github.com/acdlite/redux-actions).
+3. Sagas are for fielding actions that require async operations. We use [redux-saga](https://github.com/yelouafi/redux-saga).
+4. Reducers are for writing to the store. We use [redux-actions](https://github.com/acdlite/redux-actions) for this too.
+5. Selectors and Actions form the interface to your module. Anyone using your module in their code will import the selectors and actions you provide.
+
+Here's a generic module that makes use of sagas:
+
+```js
+import { combineReducers } from 'redux'
+import { createAction, handleActions } from 'redux-actions'
+import { createSelector } from 'reselect'
+import { takeEvery, delay } from 'redux-saga'
+import { put } from 'redux-saga/effects'
+
+// selectors
+export const getResult => (state) => state.myReducer.result
+export const getPending => (state) => state.myReducer.pending
+
+export const getFinalResult = createSelector(
+  [ getResult, getPending ],
+  (result, pending) => !!pending ? result : undefined
+)
+
+// actions and action creators
+export const MY_ACTION = 'MY_ACTION'
+export const myAction = createAction(MY_ACTION)
+
+export const MY_ASYNC_ACTION = 'MY_ASYNC_ACTION'
+export const myAsyncAction = createAction(MY_ASYNC_ACTION)
+
+export const MY_BETTER_ASYNC_ACTION = 'MY_BETTER_ASYNC_ACTION'
+export const myBetterAsyncAction = createAction(MY_BETTER_ASYNC_ACTION)
+
+const STARTED_BETTER_ASYNC_ACTION = 'STARTED_BETTER_ASYNC_ACTION'
+const startedBetterAsyncAction = createAction(STARTED_BETTER_ASYNC_ACTION)
+
+const FINISHED_BETTER_ASYNC_ACTION = 'FINISHED_BETTER_ASYNC_ACTION'
+const finishedBetterAsyncAction = createAction(FINISHED_BETTER_ASYNC_ACTION)
+
+// sagas
+function * mySaga ({ payload }) {
+  yield delay(1000) // <-- returns an effect that proceeds after a delay
+  yield put(myAction(payload)) // <-- returns an effect that calls an action
+}
+
+function * myBetterSaga ({ payload }) {
+  const started = yield put(startedBetterAction(payload))
+  yield delay(1000)
+  yield put(myAction(payload))
+  yield put(finishedBetterAction(started.payload))
+}
+
+// combine sagas
+export function * rootSaga () {
+  yield [
+    // combine all of your module's sagas
+    yield * takeEvery(MY_ASYNC_ACTION, mySaga), // <-- calls the mySaga generator on MY_ASYNC_ACTION
+    yield * takeEvery(MY_BETTER_ASYNC_ACTION, myBetterSaga)
+  ]
+}
+
+// reducers
+const myReducer = handleActions({
+  [MY_ACTION]: (state, { payload }) => ({
+    ...state,
+    result: payload
+  }),
+  [STARTED_BETTER_ASYNC_ACTION]: (state, action) => ({
+    ...state,
+    pending: true
+  }),
+  [FINISHED_BETTER_ASYNC_ACTION]: (state, action) => ({
+    ...state,
+    pending: false
+  })
+}, {})
+
+// combine reducers
+export default combineReducers({
+  // combine all of your module's reducers
+  myReducer // <-- recieves store.myReducer as store
+})
+```
+
 
 ## Add sagas to a module
 
