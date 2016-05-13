@@ -162,7 +162,7 @@ export default (initialState = {}, history) => {
 #### Don't run an empty root saga
 If you are not running any sagas app-wide then you can shorten the code above to simply apply the middleware. You might do this if your `src/store/sagas.js` file (see below) returns an empty saga.
 
-`src/store/createStore.js` (without app-wide sagas)
+##### `src/store/createStore.js` (without app-wide sagas)
 
 ```js
 // ...
@@ -184,13 +184,13 @@ export default (initialState = {}, history) => {
 
 
 ### Add root sagas
-We need to create our `sagas.js` file to provide similar functionality to the `reducers.js` file. The point of this file is to provide an interface for managing sagas like the `reducers.js` file provides an interface for managing reducers. We need to add an `injectSaga()` function that works similarly to `injectReducer()`. We need to provide a `name` for our saga. Within redux-saga, the [`sagaMiddleware.run(saga)`](http://yelouafi.github.io/redux-saga/docs/api/index.html#middlewarerunsaga-args) function returns a [`task`](http://yelouafi.github.io/redux-saga/docs/api/index.html#task-descriptor). This is important because redux-saga simply runs your tasks. If you're not careful you might accidentally start the same saga twice. If you find yourself with double execution bugs, then you're probably running the same saga more than once. Thankfully we replicated similar logic to `injectReducer()` and calling `injectSaga()` twice with the same arguments has no effect. And if you call it twice with the same name and a different saga, then it will cancel the previous saga and run the new one.
+We need to create our `src/store/sagas.js` file to provide similar functionality to the `src/store/reducers.js` file. The point of this file is to provide an interface for managing sagas like the `reducers.js` file provides an interface for managing reducers. We need to add an `injectSaga()` function that works similarly to `injectReducer()`.
+
+Within redux-saga, the [`sagaMiddleware.run(saga)`](http://yelouafi.github.io/redux-saga/docs/api/index.html#middlewarerunsaga-args) function returns a [`task`](http://yelouafi.github.io/redux-saga/docs/api/index.html#task-descriptor). This is important because redux-saga simply runs your tasks. If you're not careful you might accidentally start the same saga twice. If you find yourself with double execution bugs, then you're probably running the same saga more than once. Thankfully we replicated similar logic to `injectReducer()` and calling `injectSaga()` twice with the same arguments has no effect. And if you call it twice with the same name and a different saga, then it will cancel the previous saga and run the new one.
 
 We also need a `cancelTask(name)` function for cancelling our named tasks. This makes it possible to manage sagas dynamically from our routes. We can effectively run the saga on enter and cancel the saga on leave.
 
-If you are using app-wide sagas, these are saga that aren't related to a specific route and should be running at all times, then you should import them in this file and include them in the array returned by the `rootSaga`.
-
-`src/store/sagas.js`
+##### `src/store/sagas.js`
 
 ```js
 import createSagaMiddleware from 'redux-saga'
@@ -259,7 +259,7 @@ export default function * rootSaga () {
 ```
 
 #### Export the sagaMiddleware
-This is where we created the middleware we used in `src/store/sagas.js`. We create an `injectSaga()` function so that we don't have to muck with the middleware directly outside of `createStore.js`.
+This is where we created the middleware we used in `src/store/createStore.js`. We create an `injectSaga()` function so that we don't have to muck with the middleware directly outside of `createStore.js`.
 
 ```js
 // ...
@@ -276,7 +276,7 @@ export const runSaga = (saga) => sagaMiddleware.run(saga)
 ```
 
 #### Inject some sagas
-Here we're bending some of the core terminology of redux-saga to be more in line with what we see elsewhere in react-redux-starter-kit. At it's core, `injectSaga()` is doing the same thing as `sagaMiddleware.run(saga)`. Remember that? This is the same thing but better. Usually you need to launch a "watcher" saga when you enter a route and kill it when you leave a route. If your saga is inside of a route you don't need it when you're not there. We'll see clearly how you use this in the next step so you don't have to understand this fully yet. You only need this when you're setting up a route. Once you get working you won't ever revisit this.
+Here we're bending some of the core terminology of redux-saga to be more in line with what we see elsewhere in react-redux-starter-kit. At it's core, `injectSaga()` is doing the same thing as `sagaMiddleware.run(saga)`. Remember that? This is the same thing but better. Usually you need to launch a "watcher" saga when you enter a route and kill it when you leave a route (more on this later). We'll see clearly how you use this in the next step so you don't have to understand this fully yet. You only need this when you're setting up a route.
 
 ```js
 // list of tasks, keyed by name
@@ -322,7 +322,7 @@ export const cancelTask = (name) => {
 ## Dynamically load a saga from a route
 We need to dynamically load our saga in our route. This is identical to the [previous example for our todo route](./react-redux-starter-kit-todos.md#route-srcroutestodosindexjs). Or, we're going to be making changes to that file to make it support our sagas. This will be pretty standard on any route you create that needs to implement sagas.
 
-`src/routes/Todos/index.js`
+##### `src/routes/Todos/index.js`
 
 ```js
 import { injectReducer } from '../../store/reducers'
@@ -372,7 +372,7 @@ Before we try to implement a saga in our sample app it's important to go over wh
 
 If you're following my anology, you use a selector in place of a getter. We use [reselect](https://github.com/reactjs/reselect) for this. It reads a value from the store. Techically you can store data in redux however you want and there are numerous ways to read data back. In practice you will probably be organizing your module to look similar to something like an [Ember Data Model](http://emberjs.com/api/data/classes/DS.Model.html). Regardless of how you structure your modules, using reselect to read from the store is highly recommended. The [documentation provided](https://github.com/reactjs/reselect) is top-notch.
 
-If a selector is a getter, then what is a setter? The short answer is "reducers" but that's not the whole story. Typically you don't call a reducer directly, instead you call an action which then gets dispatched to a reducer. In redux the simple act of updating an entity is turned into a complex maze of actions, thunks and sagas until it eventually reaches a reducer and updates the application state. Of course that's the power of redux. When you use something like Ember Data it is very easy to get and set a value on a model. But Ember Data itself does a tremendous amount of work to manage all of the underlying side effects without you needing to worry about. In redux there's no magic going on and you have to manage those side effects yourself. That makes it slightly harder to get going but actually results in better performing code and completely removes framework-fighting (bending over backwards to get the framework to do what you want).
+If a selector is a getter, then what is a setter? The short answer is "reducers" but that's not the whole story. Typically you don't call a reducer directly, instead you call an action which then gets dispatched to a reducer. In redux the simple act of updating an entity is turned into a complex maze of actions, thunks and sagas until it eventually reaches a reducer and updates the application state. Of course that's the power of redux. When you use something like Ember Data it is very easy to get and set a value on a model. But Ember Data itself does a tremendous amount of work to manage all of the underlying side effects without you needing to worry. In redux there's no magic going on and you have to manage those side effects yourself. That makes it slightly harder to get going but actually results in better performing code and completely removes framework-fighting (bending over backwards to get the framework to do what you want).
 
 1. Selectors are for reading data from the store. We use [reselect](https://github.com/reactjs/reselect).
 2. Actions are the first step in writing to the store. We use [redux-actions](https://github.com/acdlite/redux-actions).
@@ -464,7 +464,7 @@ export default combineReducers({
 
 ## Add sagas to a module
 
-**`src/routes/Todos/modules/todos.js`**
+##### `src/routes/Todos/modules/todos.js`
 
 ```js
 
