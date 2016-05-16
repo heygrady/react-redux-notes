@@ -54,7 +54,12 @@ The classic example is [using redux-saga to make a `fetch()` request](http://yel
 
 **A saga is the target of an action, not the action itself.** Sagas can only dispatch additional actions.
 
+
+
+### Different ways to manage async JavaScript
 To manage asynchronous actions, redux-saga utilizes generator functions. Generators were *specifically* designed to manage asynchronous actions. If you have been trying to get used to Promises, then you'll get the root concepts right away. If you're used to callbacks you'll quickly see why this is better. A generator looks a lot like a [promise chain](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then) or a [callback hell](http://callbackhell.com/).
+
+##### A promise chain
 
 ```js
 // a promise chain
@@ -65,14 +70,22 @@ fetchSomething()
   .then(result => {
     return secondThing(result)
   })
+```
 
+##### A callback hell
+
+```js
 // a callback hell
 fetchSomething(result => {
   firstThing(result, result => {
     secondThing(result)
   })
 })
+```
 
+##### A generator function
+
+```js
 // a generator function
 function * doThingsWithSomething () {
   let result = yield fetchSomething()
@@ -81,12 +94,16 @@ function * doThingsWithSomething () {
 }
 
 const task = doThingsWithSomething()
+```
 
+##### Walking a generator function
+
+```js
 // you can walk a generator
 // (redux-saga does this for you)
 let finished = false
 while (!finished) {
-  const { value, done } = task.next()
+  const { value, done } = task.next() // <-- call next()
   finished = done
 
   // yield returns the value here too
@@ -95,22 +112,26 @@ while (!finished) {
 }
 ```
 
-### A saga
-What is a saga good for? While redux-saga doesn't do anything you couldn't do with a different solution, it does it in a much more concise and easy-to-follow way. Redux-saga really starts to earn its stripes with the way it runs your generators -- [redux-saga has a glossary](http://yelouafi.github.io/redux-saga/docs/Glossary.html), you'll need it. As a core requirement, redux-saga expects you to yield an effect. Thankfully redux-saga comes with a bunch of helper functions that makes it seamless to [create effects](http://yelouafi.github.io/redux-saga/docs/api/index.html#effect-creators). In practice you'll use `put()` -- just an alias for dispatch -- to dispatch actions. And you'll use `call()` to call a function that either returns a generator or a promise. Here's the example above rewritten as a valid saga:
+### Managing async actions with a saga
+What is a saga good for? Chaining asyncronous actions.
 
+While redux-saga doesn't do anything you couldn't do with a different solution, it does allows you to chain actions in an easy-to-follow way. [Redux-saga has a glossary](http://yelouafi.github.io/redux-saga/docs/Glossary.html), you'll need it. As a core requirement, redux-saga expects you to yield an effect. Thankfully redux-saga comes with a bunch of helper functions that makes it seamless to [create effects](http://yelouafi.github.io/redux-saga/docs/api/index.html#effect-creators). In practice you'll use `put()` -- just an alias for dispatch -- to dispatch actions. And you'll use `call()` to call a function that does something asynchronously, either returning a generator or a promise. Here's the example above async methods rewritten as a valid saga:
+
+##### A saga
 ```js
 // a saga
 function * doThingsWithSomething () {
-  let result = yield call(fetchSomething())
-  result = yield put(firstThing(result))
+  let result
+  result = yield call(fetchSomething()) // <-- presume fetchSomething returns a promise
+  result = yield put(firstThing(result)) // <-- presume firstThing is an action
   yield put(secondThing(result))
 }
 ```
 
 Here's some important notes about sagas:
 
-1. Sagas should not update the store directly, that's what a reducer is for.
-2. Sagas are for fielding actions *before* they get to reducers, that's why it connects to redux as middleware.
+1. Sagas should not update the store directly, that's what a *reducer* is for.
+2. Sagas are for fielding actions *before* they get to reducers, that's why redux-saga provides middleware.
 3. Redux-saga uses weird terminology like `put` instead of `dispatch` and `takeEvery` instead of `handle`.
 4. Redux-saga manages your generators for you, that's why you normally don't have to call [`next()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator/next) on your sagas. Your saga should `yield` an [effect](http://yelouafi.github.io/redux-saga/docs/basics/DeclarativeEffects.html) in order to tell redux-saga how to run your generator.
 
