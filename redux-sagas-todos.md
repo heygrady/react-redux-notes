@@ -390,8 +390,8 @@ import { takeEvery, delay } from 'redux-saga'
 import { put } from 'redux-saga/effects'
 
 // selectors
-export const getResult => (state) => state.myReducer.result
-export const getPending => (state) => state.myReducer.pending
+export const getResult = (state) => state.myReducer.result
+export const getPending = (state) => state.myReducer.pending
 
 export const getFinalResult = createSelector(
   [ getResult, getPending ],
@@ -459,14 +459,479 @@ export default combineReducers({
 })
 ```
 
-
-
-
-## Add sagas to a module
+## Add sagas to the todos module
 
 ##### `src/routes/Todos/modules/todos.js`
+Here is a full version of the todos module that utilizes [reselect](https://github.com/reactjs/reselect), [redux-actions](https://github.com/acdlite/redux-actions) and [redux-saga](https://github.com/yelouafi/redux-saga) to recreate the [todos app](http://redux.js.org/docs/basics/index.html). There's a lot going on here and you can start to see why some developers prefer to break their modules into smaller files. We'll go through this in detail below. You should note that right now the async portion of this is totally superficial -- we're simply adding a delay instead of actually syncing to a server. It's important not to get too hung up on the server part of the transaction yet. We'll get deeper into using this with an API in the next tutorial.
 
 ```js
+import { combineReducers } from 'redux'
+import { createAction, handleActions } from 'redux-actions'
+import { createSelector } from 'reselect'
+import { v4 as uuid } from 'node-uuid'
+import { takeEvery, delay } from 'redux-saga'
+import { put } from 'redux-saga/effects'
 
+// Selectors
+export const getAppState = (state) => state.todos
+export const getVisibilityFilter = (state) => getAppState(state).visibilityFilter
+export const getTodos = (state) => getAppState(state).todos
+export const getPendingTodos = (state) => getAppState(state).pendingTodos
+
+export const getVisibleTodos = createSelector(
+  [ getVisibilityFilter, getTodos ],
+  (visibilityFilter, todos) => {
+    switch (visibilityFilter) {
+      case 'SHOW_ALL':
+        return todos
+      case 'SHOW_COMPLETED':
+        return todos.filter(t => t.completed)
+      case 'SHOW_ACTIVE':
+        return todos.filter(t => !t.completed)
+    }
+  }
+)
+
+// Constants
+export const ADD_TODO_ASYNC = 'ADD_TODO_ASYNC'
+const ADD_PENDING_TODO = 'ADD_PENDING_TODO'
+const ADD_TODO = 'ADD_TODO'
+const REMOVE_PENDING_TODO = 'REMOVE_PENDING_TODO'
+export const SET_VISIBILITY_FILTER = 'SET_VISIBILITY_FILTER'
+export const TOGGLE_TODO = 'TOGGLE_TODO'
+
+// Action Creators
+export const addTodoAsync = createAction(ADD_TODO_ASYNC)
+const addPendingTodo = createAction(ADD_PENDING_TODO, text => ({ id: uuid(), text }))
+const addTodo = createAction(ADD_TODO, text => ({ id: uuid(), text }))
+const removePendingTodo = createAction(REMOVE_PENDING_TODO)
+export const setVisibilityFilter = createAction(SET_VISIBILITY_FILTER)
+export const toggleTodo = createAction(TOGGLE_TODO)
+
+// Sagas
+export function * addTodoAsyncSaga ({ payload }) {
+  const pending = yield put(addPendingTodo(payload))
+  yield delay(1000)
+  yield put(addTodo(payload))
+  yield put(removePendingTodo(pending.payload))
+}
+
+// Root Saga
+export function * rootSaga () {
+  yield [
+    yield * takeEvery('ADD_TODO_ASYNC', addTodoAsyncSaga)
+  ]
+}
+
+// Reducers
+const todo = handleActions({
+  [ADD_TODO]: (state, { payload }) => ({
+    id: payload.id,
+    text: payload.text,
+    completed: false
+  }),
+  [TOGGLE_TODO]: (state, { payload }) => (
+    state.id !== payload ? state : {
+      ...state,
+      completed: !state.completed
+    }
+  )
+})
+
+export const todos = handleActions({
+  [ADD_TODO]: (state, action) => ([
+    ...state,
+    todo(undefined, action)
+  ]),
+  [TOGGLE_TODO]: (state, action) => state.map(t => todo(t, action))
+}, [])
+
+export const visibilityFilter = handleActions({
+  [SET_VISIBILITY_FILTER]: (state, { payload }) => payload
+}, 'SHOW_ALL')
+
+const pendingTodo = handleActions({
+  [ADD_PENDING_TODO]: (state, { payload }) => ({
+    id: payload.id,
+    text: payload.text,
+    completed: false,
+    pending: true
+  })
+})
+
+export const pendingTodos = handleActions({
+  [ADD_PENDING_TODO]: (state, action) => ([
+    ...state,
+    pendingTodo(undefined, action)
+  ]),
+  [REMOVE_PENDING_TODO]: (state, { payload }) => state.filter(t => t.id !== payload.id)
+}, [])
+
+// Combined Reducer
+export default combineReducers({
+  todos,
+  visibilityFilter,
+  pendingTodos
+})
 ```
+
+### Using Selectors
+You can see above that we're using selectors for the first time in this tutorial. At their core, selectors are functions that return a value from a specific part of the state. This helps formalize how your app interacts with the state. For instance, if you're storing the `visibilityFilter` under `state.todosApp.visibilityFilter` you might find it unsettling to paste that into every part of your app that needs to read the current visibility filter. It's easier to provide a simple accessor function.
+
+You can see that a selector is just a function that returns part of the state. You can easily chain your selectors. It's goot practice to provide a generic `getAppState(state)` selector so that you could easily "move" your app in the redux store without having to refactor your entire app.
+
+#### A simple selector in a module
+```js
+// a simple selector in a module
+
+// we provide an appState selector
+// if state.todosApp needed to change we'd only have to update it here
+export const getAppState = (state) => state.todosApp
+
+// we use the appState selector to make our app's selectors easier to refactor
+// this selector just returns the visibilityFilter from the todo app's state
+export const getVisibilityFilter = (state) => getAppState().visibilityFilter
+
+// you are intended to use a selctor inside of mapStateToProps in a container component
+// mapStateToProps take two arguments: state, containerProps
+// standard selector functions take two arguments: state, props
+// It's not common to use the props argument unless you're doing something clever
+export const standardSelector = (state, props) => state.some.key.path
+```
+
+#### Using a selector in a container
+From a container you use it like this:
+
+```js
+// using a selector in a container
+import { getVisibilityFilter } from '../modules/todos'
+
+// you use selectors inside here
+const mapStateToProps = (state) => {
+  return {
+
+    // we pass the state to our selector, it returns the value we're looking for
+    visibilityFilter: getVisibilityFilter(state)
+  }
+}
+
+// ...
+```
+
+#### Creating memoized selectors with reselect
+In practice most of the selectors you create will just be plain functions. When you need to combine selectors in complex ways, like if you're filtering a list, it's best practice to [memoize your selector](http://stackoverflow.com/questions/32543277/implementing-and-understanding-memoize-function-in-underscore-lodash). "Memoizing" a function means that you cache the results of the function so that you only perform an expensive operation when you need to. This is a standard pattern and selectors are the ideal usecase to apply it. Helpfully, the [reselect](https://github.com/reactjs/reselect) makes it easy to compose selectors and memoize them in a standard way. Similar to using `createAction` from redux-actions, reselect provides a `createSelector` function. You should read the reselect Github page for more information.
+
+```js
+// ... selectors section from the todos module
+
+import { createSelector } from 'reselect'
+
+// Selectors
+export const getAppState = (state) => state.todos
+export const getVisibilityFilter = (state) => getAppState(state).visibilityFilter
+export const getTodos = (state) => getAppState(state).todos
+
+// this is a memoized selector function
+// it calculates an expensive result by combining multiple selectors
+export const getVisibleTodos = createSelector(
+
+  // pass in an array of selector functions this memoized selector depends on
+  // our memoized selector will only refresh if the results of any selector function changes
+  // each selector is passed (state, containerProps)
+  [ getVisibilityFilter, getTodos ],
+
+  // the results of each selector are passed as arguments
+  // these selector results are used to automanage the cache for the memoize function
+  (visibilityFilter, todos) => {
+
+    // perform a potentially  expensive action on a list
+    // the return value is automatically cached by the memoize function
+    switch (visibilityFilter) {
+      case 'SHOW_ALL':
+        return todos
+      case 'SHOW_COMPLETED':
+        return todos.filter(t => t.completed) // <-- Array.prototype.filter is considered "expensive"
+      case 'SHOW_ACTIVE':
+        return todos.filter(t => !t.completed)
+    }
+  }
+)
+```
+
+#### Using a reselect selector in a container
+While a reselect selector looks more complicated in our module it's just as easy to use as a standard selector function.
+
+```js
+// using a reselect selector in a container
+import { getVisibleTodos } from '../modules/todos'
+
+const mapStateToProps = (state) => {
+  return {
+    todos: getVisibleTodos(state)
+  }
+}
+
+// ...
+```
+
+### Using Sagas
+We did a fairly thorough job of exploring sagas above. It might seem complicated but in practice sagas are really easy. We're going to review adding a sage for adding a new todo with a slight delay. Why? Because introducing a delay is enough to show how much a saga can so for us. When you're working with async actions it's good practice to practice to signify if the app is waiting for something to complete. We're going to call that 'pending' because any time we add a new todo we will wait 1 second before actually adding it. We're going to be updating our app in a few places to make it obvious how elegant the solution is. You may want to read about [how `yield *` works](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield*).
+
+```js
+// ... sagas section from the todos module
+
+import { takeEvery, delay } from 'redux-saga'
+import { put } from 'redux-saga/effects'
+
+// Sagas
+
+// a saga is just a generator function
+// all it does is dispatch actions
+// within a saga you need to yield effects
+export function * addTodoAsyncSaga ({ payload }) {
+
+  // put returns the action object created by the addPendingTodo action creator
+  // put is the same as dispatch, but designed to work with a saga
+  // put generates an effect
+  const pending = yield put( addPendingTodo(payload) )
+
+  // we use a delay to pretend we're autosaving the todo on the server
+  // redux-saga comes with a delay function that pauses the function
+  // delay also generates an effect, just like put
+  yield delay(1000)
+
+  // after 1 second we dispatch the normal addTodo action
+  yield put( addTodo(payload) )
+
+  // to wrap things up we clear our pending todo
+  yield put( removePendingTodo(pending.payload) )
+}
+
+// Root Saga
+
+// we need to run our sagas
+// it's easy to combine them in the array yielded by our rootSaga array
+// yielding an array is how you run sagas in parallel
+// usually you use takeEvery to map actions to sagas
+// typically our route controls when our rootSaga runs
+export function * rootSaga () {
+  yield [
+
+    // subscribe to start a saga when an action occurs
+    yield * takeEvery('ADD_TODO_ASYNC', addTodoAsyncSaga)
+  ]
+}
+```
+
+#### Creating actions for our saga
+
+```js
+// ... actions section from the todos module
+
+import { createAction, handleActions } from 'redux-actions'
+import { v4 as uuid } from 'node-uuid'
+
+// Constants
+
+// we're adding a new async constant
+export const ADD_TODO_ASYNC = 'ADD_TODO_ASYNC' 
+
+// we don't need to export these constants if we don't use them outside this file
+const ADD_TODO = 'ADD_TODO'
+const ADD_PENDING_TODO = 'ADD_PENDING_TODO'   // <-- start
+const REMOVE_PENDING_TODO = 'REMOVE_PENDING_TODO' // <-- end
+
+export const SET_VISIBILITY_FILTER = 'SET_VISIBILITY_FILTER'
+export const TOGGLE_TODO = 'TOGGLE_TODO'
+
+// Action Creators
+
+// usage: addTodoAsync(text)
+// we need to export this action creator
+export const addTodoAsync = createAction(ADD_TODO_ASYNC)
+
+// the other action creators are for internal use only and we don't need to export them
+// it's good practice to only export what you intend people to use from the outside
+// it's pretty easy to add export later if you find that you need to use it elsewhere
+
+// usage: addPendingTodo(text)
+// generate a uuid for each pending todo
+// we use the id to track the pending todo
+const addPendingTodo = createAction(ADD_PENDING_TODO, text => ({ id: uuid(), text }))
+
+// usage: addTodo(text)
+// generate a uuid for each todo we add
+// we use a different uuid from the pending todo
+// presumeably we'd get the ID from the server if we created
+const addTodo = createAction(ADD_TODO, text => ({ id: uuid(), text }))
+
+// usage: removePendingTodo({ id })
+const removePendingTodo = createAction(REMOVE_PENDING_TODO)
+
+export const setVisibilityFilter = createAction(SET_VISIBILITY_FILTER)
+export const toggleTodo = createAction(TOGGLE_TODO)
+```
+
+#### Using an async action in a container component
+We use actions from the `mapDispatchToProps` portion of a container component. All you really need to do is dispatch an action that we've configured our rootSaga to listen for. If our rootSaga sees our async action it will kick off our saga. This makes it really easy to implement async functionality from a containers perspective. It's good practice to capture complex async logic in your module so that you can control how people interact with your data in a centralized place.
+
+```js
+// using an async action in a container component
+
+import { addTodoAsync } from '../modules/todos'
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    addTodo: (text) => {
+
+      // when this gets dispatched our addTodoAsyncSaga will capture it
+      dispatch( addTodoAsync(text) )
+    }
+  }
+}
+
+// ...
+```
+
+#### Creating reducers
+
+```js
+// ... reducers section from the todos module
+
+import { createAction, handleActions } from 'redux-actions'
+
+// Reducers
+
+// ...
+
+// we add a reducer for creating a pending todo
+const pendingTodo = handleActions({
+  [ADD_PENDING_TODO]: (state, { payload }) => ({
+    id: payload.id,
+    text: payload.text,
+    completed: false,
+    pending: true // <-- pending todos have a pending prop set to true
+  })
+})
+
+// we need to handle adding and removing pending todos
+export const pendingTodos = handleActions({
+
+  // we create a new pending todo and add it to our pending array
+  [ADD_PENDING_TODO]: (state, action) => ([
+    ...state,
+    pendingTodo(undefined, action)
+  ]),
+
+  // we remove the pending todo from the pending array by id
+  [REMOVE_PENDING_TODO]: (state, { payload }) => state.filter(t => t.id !== payload.id)
+}, [])
+
+// Combined Reducer
+export default combineReducers({
+  todos,
+  visibilityFilter,
+
+  // we need to combine our reducer with the others
+  // this becomes state.todosApp.pendingTodos
+  pendingTodos
+})
+```
+
+#### Using our pending todos in a container
+
+```js
+// ... src/routes/Todos/containers/AddTodo.js
+
+import { addTodoAsync } from '../modules/todos'
+
+let AddTodo = ({ dispatch }) => {
+  // ... 
+
+  const onSubmit = e => {
+    // ...
+
+    // the only change is to dispatch the async action instead of the sync action
+    dispatch( addTodoAsync(input.value) )
+
+    // ...
+  }
+
+  // ...
+}
+
+// ...
+```
+
+```js
+// ... src/routes/Todos/containers/VisibleTodoList.js
+
+import { getVisibleTodos, getPendingTodos } from '../modules/todos'
+
+const mapStateToProps = (state) => {
+
+  // get our visible and pending todos
+  const visible = getVisibleTodos(state)
+  const pending = getPendingTodos(state)
+
+  return {
+
+    // merge the visible and pending todos into a single list
+    todos: visible.concat(pending)
+  }
+}
+
+// ...
+```
+
+#### Seeing our pending todos in a component
+We need to alter our `TodoList` and our `Todo` components.
+
+```jsx
+// src/routes/components/TodoList.js
+
+// ...
+
+TodoList.propTypes = {
+  todos: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    completed: PropTypes.bool.isRequired,
+    pending: PropTypes.bool, // <-- we need to add a pending PropType
+    text: PropTypes.string.isRequired
+  }).isRequired).isRequired,
+  onTodoClick: PropTypes.func.isRequired
+}
+
+export default TodoList
+```
+
+```jsx
+// src/routes/components/Todos.js
+
+import React, { PropTypes } from 'react'
+
+const Todo = ({ onClick, completed, pending, text }) => (
+  <li
+    onClick={onClick}
+    style={{
+      textDecoration: completed ? 'line-through' : 'none',
+      fontStyle: pending ? 'italic' : 'normal', // <-- change style when pending
+      color: pending ? 'gray' : 'inherit'
+    }}
+  >
+    {text}
+    {pending ? ' - Waiting' : '' /* we add a label if it's pending */}
+  </li>
+)
+
+Todo.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  completed: PropTypes.bool.isRequired,
+  pending: PropTypes.bool, // <-- we need to add a pending PropType
+  text: PropTypes.string.isRequired
+}
+
+export default Todo
+```
+
 
