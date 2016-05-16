@@ -118,7 +118,7 @@ export default (store) => ({
       const TodosView = require('./components/TodosView').default
       const reducer = require('./modules/todos').default
 
-      injectReducer(store, { key: 'todos', reducer })
+      injectReducer(store, { key: 'todosApp', reducer })
 
       cb(null, TodosView)
     }, 'todos')
@@ -222,7 +222,7 @@ It's important to pay attention to what's going on here:
   // ...
 
   // make sure to give your reducer a good name
-  injectReducer(store, { key: 'todos', reducer })
+  injectReducer(store, { key: 'todosApp', reducer })
 
   // ...
   ```
@@ -378,8 +378,9 @@ if (__DEBUG__) {
 # Create the Todo files
 Now that we have our route set up we just need to add in all of the files needed to complete the classic [Todo example from the Redux manual](http://redux.js.org/docs/basics/index.html). We're going to assume that you've reviewed that application. Below we're changing the files to fit better with the react-redux-starter-kit.
 
+## Footer
 
-## Create Footer Component
+### Create Footer Component
 ```bash
 mkdir -p src/routes/Todos/components
 touch src/routes/Todos/components/Footer.js
@@ -392,7 +393,7 @@ touch tests/routes/Todos/components/Footer.spec.js
 redux g component Footer --path routes/Todos
 ```
 
-## Footer: `src/routes/Todos/components/Footer.js`
+##### `src/routes/Todos/components/Footer.js`
 Compare to [`components/Footer.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-footer-js).
 
 ```jsx
@@ -420,7 +421,7 @@ const Footer = () => (
 export default Footer
 ```
 
-## Create the FilterLinks Component
+### Create the FilterLinks Component
 ```bash
 mkdir -p src/routes/Todos/containers
 touch src/routes/Todos/containers/FilterLink.js
@@ -433,7 +434,7 @@ touch tests/routes/Todos/containers/FilterLink.spec.js
 redux g container FilterLink --path routes/Todos
 ```
 
-## FilterLinks: `src/routes/Todos/containers/FilterLink.js`
+##### `src/routes/Todos/containers/FilterLink.js`
 Compare to [`containers/FilterLink.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-filterlink-js).
 
 ```js
@@ -463,7 +464,7 @@ const FilterLink = connect(
 export default FilterLink
 ```
 
-## Create the Link Component
+### Create the Link Component
 ```bash
 mkdir -p src/routes/Todos/components
 touch src/routes/Todos/components/Link.js
@@ -476,7 +477,7 @@ touch tests/routes/Todos/components/Link.spec.js
 redux g component Link --path routes/Todos
 ```
 
-## Link: `src/routes/Todos/components/Link.js`
+##### `src/routes/Todos/components/Link.js`
 Compare to [`components/Link.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-link-js).
 
 ```jsx
@@ -515,7 +516,7 @@ export default Link
 ## Todos Module
 These are the files needed to manage the todos state.
 
-## Create the Todos Module
+### Create the Todos Module
 ```bash
 mkdir -p src/routes/Todos/modules
 touch src/routes/Todos/modules/todos.js
@@ -528,7 +529,7 @@ touch tests/routes/Todos/modules/todos.spec.js
 redux g module todos --path routes/Todos
 ```
 
-## Todos Module: `src/routes/Todos/modules/todos.js`
+##### `src/routes/Todos/modules/todos.js`
 Compare to [`actions/index.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-actions-index-js) and [`reducers/todos.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-reducers-todos-js).
 
 ```js
@@ -586,7 +587,7 @@ export default combineReducers({
 ## Todos Form
 Here we're just taking the component straight from the manual. The react-redux-starter-kit appears to recommend [redux-form](https://github.com/erikras/redux-form) for complex forms. It's pretty easy to [get started with redux-form](http://redux-form.com/5.2.3/#/getting-started) but that is outside the scope of this document. It's likely that you would only want to use this for complex forms and consider rolling your own components for smaller interfaces, like this simple entry form.
 
-## Create the Todos Form
+### Create the Todos Form
 ```bash
 mkdir -p src/routes/Todos/containers
 touch src/routes/Todos/containers/AddTodo.js
@@ -604,10 +605,8 @@ redux g form AddTodo --path routes/Todos
 
 *Note:* If you want to use redux-cli to create forms you need to intall it first: `npm install redux-forms --save`.
 
-## AddTodo: `src/routes/Todos/containers/AddTodo.js`
-
+##### `src/routes/Todos/containers/AddTodo.js`
 Compare to [`containers/AddTodo.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-addtodo-js).
-
 
 ```js
 import React, { PropTypes } from 'react'
@@ -652,7 +651,7 @@ export default AddTodo
 ## Todos List
 These are the files needed for the Todos list.
 
-## Create the VisibleTodoList Component
+### Create the VisibleTodoList Component
 ```bash
 mkdir -p src/routes/Todos/containers
 touch src/routes/Todos/containers/VisibleTodoList.js
@@ -665,7 +664,7 @@ touch tests/routes/Todos/containers/VisibleTodoList.spec.js
 redux g container VisibleTodoList --path routes/Todos
 ```
 
-## VisibleTodoList: `src/routes/Todos/containers/VisibleTodoList.js`
+##### `src/routes/Todos/containers/VisibleTodoList.js`
 Compare to [`containers/VisibleTodoList.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-visibletodolist-js).
 
 ```js
@@ -712,7 +711,8 @@ const VisibleTodoList = connect(
 
 export default VisibleTodoList
 ```
-## Create the TodoList Component
+
+### Create the TodoList Component
 ```bash
 mkdir -p src/routes/Todos/components
 touch src/routes/Todos/components/TodoList.js
@@ -726,7 +726,7 @@ redux g component TodoList --path routes/Todos
 ```
 
 
-## TodoList: `src/routes/Todos/components/TodoList.js`
+##### `src/routes/Todos/components/TodoList.js`
 Compare to [`components/TodoList.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-todolist-js).
 
 ```jsx
@@ -760,7 +760,7 @@ TodoList.propTypes = {
 export default TodoList
 ```
 
-## Create the Todo Component
+### Create the Todo Component
 ```bash
 mkdir -p src/routes/Todos/components
 touch src/routes/Todos/components/Todo.js
@@ -773,7 +773,7 @@ touch tests/routes/Todos/components/Todo.spec.js
 redux g component Todo --path routes/Todos
 ```
 
-## Todo: `src/routes/Todos/components/Todo.js`
+##### Todo: `src/routes/Todos/components/Todo.js`
 Compare to [`components/Todo.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-todo-js).
 
 ```jsx
