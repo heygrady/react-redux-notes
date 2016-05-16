@@ -54,7 +54,7 @@ The classic example is [using redux-saga to make a `fetch()` request](http://yel
 
 **A saga is the target of an action, not the action itself.** Sagas usually dispatch additional actions after waiting for an asynchronous action.
 
-### Different ways to manage async actions JavaScript
+### Different ways to manage async actions in JavaScript
 To manage asynchronous actions, redux-saga utilizes generator functions. Generators were *specifically* designed to manage asynchronous actions. If you have been trying to get used to Promises, then you'll get the root concepts right away. If you're used to callbacks you'll quickly see why this is better. A generator looks a lot like a [promise chain](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then) or a [callback hell](http://callbackhell.com/).
 
 ##### A promise chain
