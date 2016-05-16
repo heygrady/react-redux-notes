@@ -359,10 +359,10 @@ Because we're using Webpack's `require.ensure`, we have to `require` instead of 
 const { default: reducer, rootSaga: saga } = require('./modules/todos')
 
 // we inject the reducer as normal
-injectReducer(store, { key: 'todos', reducer })
+injectReducer(store, { key: 'todosApp', reducer })
 
 // we also run our root saga
-injectSaga({ name: 'todos', saga })
+injectSaga({ name: 'todosApp', saga })
 
 // ...
 ```
@@ -455,11 +455,12 @@ const myReducer = handleActions({
 // combine reducers
 export default combineReducers({
   // combine all of your module's reducers
-  myReducer // <-- recieves store.myReducer as store
+  myReducer // <-- receives state.myReducer as state
 })
 ```
 
 ## Add sagas to the todos module
+If that generic module above is a little confusing that's ok. It's just boilerplate to cature some of the things you typically do in a module. With regards to our todo app we'll just use the todos module recreated in the previous tutorial. We'll be making some changes. We'll start with the finished modules and then explain it piece by piece below.
 
 ##### `src/routes/Todos/modules/todos.js`
 Here is a full version of the todos module that utilizes [reselect](https://github.com/reactjs/reselect), [redux-actions](https://github.com/acdlite/redux-actions) and [redux-saga](https://github.com/yelouafi/redux-saga) to recreate the [todos app](http://redux.js.org/docs/basics/index.html). There's a lot going on here and you can start to see why some developers prefer to break their modules into smaller files. We'll go through this in detail below. You should note that right now the async portion of this is totally superficial -- we're simply adding a delay instead of actually syncing to a server. It's important not to get too hung up on the server part of the transaction yet. We'll get deeper into using this with an API in the next tutorial.
