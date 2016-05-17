@@ -58,6 +58,7 @@ The classic example is [using redux-saga to make a `fetch()` request](http://yel
 To manage asynchronous actions, redux-saga utilizes generator functions. Generators were *specifically* designed to manage asynchronous actions. If you have been trying to get used to Promises, then you'll get the root concepts right away. If you're used to callbacks you'll quickly see why this is better. A generator looks a lot like a [promise chain](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then) or a [callback hell](http://callbackhell.com/).
 
 ##### A promise chain
+In a promise chain you can keep adding `then()` functions to a promise. It ensures that your additional actions execute only after the initial promise has resolved. Check out a more [complete example](https://repl.it/CR47/9)
 
 ```js
 // a promise chain
@@ -71,6 +72,7 @@ fetchSomething()
 ```
 
 ##### A callback hell
+You should read about [callback hell](http://callbackhell.com/) and also how [reactive programming is better](http://stackoverflow.com/questions/25098066/what-is-callback-hell-and-how-and-why-rx-solves-it). Check out a more [complete example](https://repl.it/CR47/8).
 
 ```js
 // a callback hell
@@ -82,11 +84,13 @@ fetchSomething(result => {
 ```
 
 ##### A generator function
+Generators are the core of reactive programming. It's basically the same thing as a callback hell or a promise chain but it gives the user much more control. You have to walk your generators (see below). Check out a more [complete example](https://repl.it/CR47/7).
 
 ```js
 // a generator function
 function * doThingsWithSomething () {
-  let result = yield fetchSomething()
+  let result
+  result = yield fetchSomething()
   result = yield firstThing(result)
   yield secondThing(result)
 }
@@ -95,25 +99,31 @@ const task = doThingsWithSomething()
 ```
 
 ##### Walking a generator function
+Generators give you a lot of control from the outside. It's subtle in the above example but the value captured in `result = yield fetchSomething()` is actually passed in from the outside using the `next()` function. Internally redux-saga takes full advantage of this, except it passes in the result from the previous effect. If this doesn't make sense don't worry -- redux-saga does this for you!
 
 ```js
 // you can walk a generator
 // (redux-saga does this for you)
-let finished = false
-while (!finished) {
-  const { value, done } = task.next() // <-- call next()
-  finished = done
+function walkTask(task) {
+  let result = {}
+  let value
 
-  // yield returns the value here too
-  // (redux-saga wants this to be an effect)
-  console.log( value )
+  while (!result.done) {
+    result = task.next(result.value) // <-- call next() with the previously yielded value
+  }
+
+  return result.value
 }
+
+walkTask(task)
 ```
+
+*Note:* The `walkTask()` function above is just a toy example. Redux-saga actually analyzes the effect you yield and does some magic. However, once redux-saga is done with its internal magic it simply calls `next()` with the result of the previous effect.
 
 ### Managing async actions with a saga
 What is a saga good for? Chaining asyncronous actions.
 
-While redux-saga doesn't do anything you couldn't do with a different solution, it allows you to chain actions in an easy-to-follow way. [Redux-saga has a glossary](http://yelouafi.github.io/redux-saga/docs/Glossary.html), you'll need it. As a core requirement, redux-saga expects you to yield an effect. Thankfully redux-saga comes with a bunch of helper functions that makes it seamless to [create effects](http://yelouafi.github.io/redux-saga/docs/api/index.html#effect-creators). In practice you'll use `put()` -- just an alias for dispatch -- to dispatch actions. And you'll use `call()` to call a function that does something asynchronously, either returning a generator or a promise. Here's the example above async methods rewritten as a valid saga:
+While redux-saga doesn't do anything you couldn't do with a different solution, it allows you to chain actions in an easy-to-follow way. [Redux-saga has a glossary](http://yelouafi.github.io/redux-saga/docs/Glossary.html), you'll need it. As a core requirement **redux-saga expects you to yield an effect**. Thankfully redux-saga comes with a bunch of helper functions that makes it seamless to [create effects](http://yelouafi.github.io/redux-saga/docs/api/index.html#effect-creators). In practice you'll use [`put()`](http://yelouafi.github.io/redux-saga/docs/api/index.html#putaction) -- just an alias for dispatch -- to dispatch actions. And you'll use [`call()`](http://yelouafi.github.io/redux-saga/docs/api/index.html#callfn-args) to call a function that does something asynchronously, either returning a generator or a promise. Here's the async example from above rewritten as a saga:
 
 ##### A saga
 
