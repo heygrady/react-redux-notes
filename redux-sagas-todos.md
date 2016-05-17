@@ -643,7 +643,7 @@ export default combineReducers({
 })
 ```
 
-### Using Selectors
+## Using Selectors
 You can see above that we're using selectors for the first time in this tutorial. At their core, selectors are functions that return a value from a specific part of the state. This helps formalize how your app interacts with the state. For instance, if you're storing the `visibilityFilter` under `state.todosApp.visibilityFilter` you might find it unsettling to paste that into every part of your app that needs to read the current visibility filter. It's easier to provide a simple accessor function.
 
 You can see that a selector is just a function that returns part of the state. You can easily chain your selectors. It's good practice to provide a generic `getAppState(state)` selector so that you could easily "move" your app in the redux store without having to refactor your entire app.
@@ -747,7 +747,7 @@ const mapStateToProps = (state) => {
 }
 ```
 
-### Using Sagas
+## Using Sagas
 We did a fairly thorough job of exploring sagas above. It might seem complicated but in practice sagas are really easy. We're going to review a saga for adding a new todo with a slight delay. Why? Because introducing a delay is enough to show how much a saga can do for us. When you're working with async actions it's good practice to track the progress in the app. We're going to call that 'pending' because any time we add a new todo we will wait 1 second before actually adding it. We're going to be updating our app in a few places to make it obvious how elegant the solution is. You may want to read about [how `yield *` works](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield*).
 
 ```js
