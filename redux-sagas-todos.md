@@ -527,12 +527,14 @@ export default combineReducers({
 ## Add sagas to the todos module
 If that generic module above is a little confusing that's ok. It's just boilerplate to capture some of the things you typically do in a module. With regards to our todo app we'll just use the todos module recreated in the previous tutorial. We'll be making some changes. We'll start with the finished modules and then explain it piece by piece below.
 
+You should note that right now the async portion of this is totally superficial -- we're simply adding a delay instead of actually syncing to a server. It's important not to get too hung up on the server part of the transaction yet. We'll get deeper into using this with an API in the next tutorial.
+
 ##### `src/routes/Todos/modules/todos.js`
 Here is a full version of the todos module that utilizes [reselect](https://github.com/reactjs/reselect), [redux-actions](https://github.com/acdlite/redux-actions) and [redux-saga](https://github.com/yelouafi/redux-saga) to recreate the [todos app](http://redux.js.org/docs/basics/index.html). There's a lot going on here and you can start to see why some developers prefer to break their modules into smaller files. We'll go through this in detail below. 
 
-You should note that right now the async portion of this is totally superficial -- we're simply adding a delay instead of actually syncing to a server. It's important not to get too hung up on the server part of the transaction yet. We'll get deeper into using this with an API in the next tutorial.
-
 ```js
+// src/routes/Todos/modules/todos.js
+
 import { combineReducers } from 'redux'
 import { createAction, handleActions } from 'redux-actions'
 import { createSelector } from 'reselect'
@@ -646,7 +648,7 @@ export default combineReducers({
 ## Using Selectors
 You can see above that we're using selectors for the first time in this tutorial. At their core, selectors are functions that return a value from a specific part of the state. This helps formalize how your app interacts with the state. For instance, if you're storing the `visibilityFilter` under `state.todosApp.visibilityFilter` you might find it unsettling to paste that into every part of your app that needs to read the current visibility filter. It's easier to provide a simple accessor function.
 
-You can see that a selector is just a function that returns part of the state. You can easily chain your selectors. It's good practice to provide a generic `getAppState(state)` selector so that you could easily "move" your app in the redux store without having to refactor your entire app.
+You can see below that a selector is just a function that returns part of the state. You can easily chain your selectors. It's good practice to provide a generic `getAppState(state)` selector so that you could easily "move" your app in the redux store without having to refactor your entire app.
 
 #### A simple selector in a module
 A simple selector is just a function. It shouldn't perform any action. It should simply return a value from the state.
@@ -679,7 +681,7 @@ From a container you use it like this:
 import { getVisibilityFilter } from '../modules/todos'
 
 // you use selectors inside here
-const mapStateToProps = (state) => {
+const mapStateToProps = (state, ownProps) => {
   return {
 
     // we pass the state to our selector, it returns the value we're looking for
@@ -689,7 +691,9 @@ const mapStateToProps = (state) => {
 ```
 
 #### Creating memoized selectors with reselect
-In practice most of the selectors you create will just be plain functions. When you need to combine selectors in complex ways, like if you're filtering a list, it's best practice to [memoize your selector](http://stackoverflow.com/questions/32543277/implementing-and-understanding-memoize-function-in-underscore-lodash). "Memoizing" a function means that you cache the results of the function so that you only perform an expensive operation when you need to. This is a standard pattern and selectors are the ideal usecase to apply it. Helpfully, the [reselect](https://github.com/reactjs/reselect) makes it easy to compose selectors and memoize them in a standard way. Similar to using `createAction` from redux-actions, reselect provides a `createSelector` function. You should read the reselect Github page for more information.
+In practice most of the selectors you create will just be plain functions. When you need to combine selectors in complex ways, like if you're filtering a list, it's best practice to [memoize your selector](http://stackoverflow.com/questions/32543277/implementing-and-understanding-memoize-function-in-underscore-lodash). "[Memoizing](https://addyosmani.com/blog/faster-javascript-memoization/)" a function means that you cache the results of the function so that you only perform an expensive operation when you need to. This is a standard pattern and selectors are the ideal usecase to apply it. Helpfully, the [reselect](https://github.com/reactjs/reselect) makes it easy to compose selectors and memoize them in a standard way. Similar to using `createAction` from redux-actions, reselect provides a `createSelector` function. You should read the reselect Github page for more information.
+
+Read about [memoization in the good parts](https://www.safaribooksonline.com/library/view/javascript-the-good/9780596517748/ch04s15.html).
 
 ```js
 // ... selectors snippet from src/routes/Todos/modules/todos.js

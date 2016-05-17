@@ -1,6 +1,11 @@
 # React-Redux Notes
 Here are my notes from getting to know React Redux a lot better.
 
+1. This document covers what react-redux is all about and suggests using react-redux-starter-kit.
+1. Next we'll [build the Todo app](./react-redux-starter-kit-todos.md) from the manual with react-redux-starter-kit and redux-cli.
+1. After that we'll [use redux-saga](./redux-sagas-todos.md) to manage our asynchronous side effects.
+1. Then we'll make it work with a JSONAPI server for persisting todos to the server.
+
 ### How did we get here?
 I've been a web developer for more than a decade. I've seen JavaScript take a massive leap forward several times over the years. First with [Prototype.js](http://prototypejs.org/) then [jQuery](https://jquery.com/) and more recently with [Angular](https://angularjs.org/) and [Ember](http://emberjs.com/). JavaScript has been maturing slowly for what seems like forever. But these days everyone is excited about the possibilities of ES6. And the premier way to build apps in with ES6 is [React-Redux](http://redux.js.org/docs/basics/UsageWithReact.html).
 
@@ -33,7 +38,7 @@ If you haven't seen it yet, check out [Bourbon for SCSS](http://bourbon.io/). An
 
 *Note:* Yes, [TypeScript](https://www.typescriptlang.org/) exists. [Don't use it](https://www.quora.com/Should-I-go-with-Babel-or-TypeScript-for-writing-web-apps).
 
-*Note:* Babel is highly configurable and is smart enough only to "transpile" what's needed for your target system. If you're using Babel for Node-only development you can use something like [babel-preset-node6](https://www.npmjs.com/package/babel-preset-node6) which only touches code that Node 6 doesn't yet support.
+*Note:* Babel is highly configurable and is smart enough only to "transpile" what's needed for your target system. If you're using Babel for Node-only development you can use something like [babel-preset-node6](https://www.npmjs.com/package/babel-preset-node6) which only transforms code that Node 6 doesn't yet support.
 
 ### Reactive Programming is better than OOP
 With the change over to ES2015 and beyond, JavaScript development is making a dramatic shift towards modernization. A React-Redux application takes full advantage of that new power. Often then best way to do something in Redux is to simply write ES6-styled JavaScript in a smart way. Redux makes older OOP frameworks like Angular and Ember seem obsolete because ES6 makes JavaScript much easier to write -- with ES6 you don't need a framework to help you fight the deficiencies in the language. In many cases the conventions-based-approach of React and Redux can completely replace the need for more complicated OOP frameworks. Of course the downside is that Redux development is *mostly* about conventions, not frameworks. There is no massive framework that holds your hand through the whole process. Instead, Redux gets out of your way and forces you to get to know a new way to think about writing apps.
@@ -56,9 +61,9 @@ One thing to note is that the files in your project are all imported relative to
 
 - Don't bother with Bower unless it's the only way to get something you need (sometimes bower packages include code that npm packages don't). For the most part a Bower package can be installed with NPM.
 - Don't bother with [alternative package managers](http://andrewhfarmer.com/javascript-frontend-package-managers/).
-- Don't worry about code that works in Node vs. The Browser. If you're trying to write universal code that runs in the browser and on the server remember this simple rule: *all JavaScript code is universal* (with very few exceptions). When in doubt, use functions you can find on [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript).
-- The one big exception is, *duh*, the [Node-specific APIs](https://nodejs.org/dist/latest/docs/api/)! The Node-specific APIs usually won't work in the browser because they're for working with the file system or the operating system (that's a security issue in browsers). However, he vast majority of what Node offers is powered by [V8](https://developers.google.com/v8/), the same JavaScript engine used in Chrome. *Note:* If you're constantly running into issues where your code isn't working in a browser because it's Node-specific... you are probably doing something *very wrong*.
-- If you're trying to evaluate if a package is likely to work for your project a good rule of thumb is "does it work with the file system or not?" That's usually a good filter. Some NPM packages are clearly designed to work with the server and they're usually easy to spot. 
+- Don't worry about code that works in Node vs. The Browser. If you're trying to write universal code that runs in the browser and on the server remember this simple rule: **all JavaScript code is universal** (with very few exceptions). When in doubt, use functions you can find on [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript).
+- The one big exception is, *duh*, the [Node-specific APIs](https://nodejs.org/dist/latest/docs/api/)! The Node-specific APIs usually won't work in the browser because they're for working with the file system or the operating system (that's a security issue in browsers). However, the vast majority of what Node offers is powered by [V8](https://developers.google.com/v8/), the same JavaScript engine used in Chrome. *Note:* If you're constantly running into issues where your code isn't working in a browser because it's Node-specific... you are probably doing something *very wrong*.
+- If you're trying to evaluate if a package is likely to work for your project a good rule of thumb is "does it work with the file system or not?" That's usually a good filter. Some NPM packages are clearly designed to work on the server and they're usually easy to spot. 
 
 ## Getting Started with the Starter Kit
 What you may not realize is that you *must* watch the videos before doing anything with React-Redux. You have to watch the videos before you can even read the manual. **If you haven't watched the videos you shouldn't be reading this right now!**
@@ -80,23 +85,23 @@ The [Redux Todo tutorial](http://redux.js.org/docs/basics/index.html) currently 
 ## Middleware blues
 The biggest missing piece from the starter kit is a strong opinion about [middleware](http://redux.js.org/docs/advanced/Middleware.html). Don't get slowed down if you don't understand middleware right now. What you need to know is that you will use someone else's middleware, you likely won't write your own. The Redux community is coalescing around [redux-sagas](http://yelouafi.github.io/redux-saga/index.html) as the middleware of choice. Each project is free to make its own choice in this regard and Redux seems to have left this gap wide open on purpose. You'll likely feel extremely opinionated yourself once you get started on your *second* app.
 
-When we get there you'll want to choose between [redux-saga](https://github.com/yelouafi/redux-saga), [redux-effects](https://github.com/redux-effects/redux-effects), [redux-side-effects](https://github.com/gregwebs/redux-side-effect), and [redux-loop](https://github.com/raisemarketplace/redux-loop). Unless of course you're in love with [redux-thunk](https://github.com/gaearon/redux-thunk).
+When we get there you'll want to choose between [redux-saga](https://github.com/yelouafi/redux-saga), [redux-effects](https://github.com/redux-effects/redux-effects), [redux-side-effects](https://github.com/salsita/redux-side-effects), and [redux-loop](https://github.com/raisemarketplace/redux-loop). Unless of course you're in love with [redux-thunk](https://github.com/gaearon/redux-thunk).
 
-We're going to be [using Redux-Sagas](http://riadbenguella.com/from-actions-creators-to-sagas-redux-upgraded/) and [you should too](http://stackoverflow.com/questions/34570758/why-do-we-need-middleware-for-async-flow-in-redux/34623840#34623840). But there are other options for [Redux effects middleware](https://blog.hivejs.org/building-the-ui-2/) if the Sagas middleware isn't right for you.
+We're going to be [using redux-saga](http://riadbenguella.com/from-actions-creators-to-sagas-redux-upgraded/) and [you should too](http://stackoverflow.com/questions/34570758/why-do-we-need-middleware-for-async-flow-in-redux/34623840#34623840). But there are other options for [Redux effects middleware](https://blog.hivejs.org/building-the-ui-2/) if the Sagas middleware isn't right for you.
 
 ## High-level Concepts
 It's important to get a picture of how a typical starter-kit app is structured because it makes it clear how to apply the core principles of React-Redux. At it's core React-Redux is a marriage of components to a store (React deals with components, Redux deals with the store). Most people get a little lost at this point so we'll try to dive into a quick example starting with a plain React component (see below).
 
 There's a good [write-up about "smart" and "dumb" components](https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0#.vsnf17nol), by the creator of Redux. In short, a "smart" component knows about the outside world. A "dumb" component only cares about itself.
 
-*Note:* It's now passé to refer to presentational components as "dumb." It's not cool to pass judgment, they're just components, there's no need to be rude about it ;) You actually have to know about words like dumb and smart and duck because they're still used all over the Redux ecosystem. We need to know the old terms while we wait for the documentation to catch up to trends.
+*Note:* It's now passé to refer to presentational components as "dumb." It's not cool to pass judgment, they're just components, there's no need to be rude about it ;) You actually have to know about words like "dumb" and "smart" and "duck" because they're still used all over the Redux ecosystem. We need to know the old terms while we wait for the documentation to catch up to trends.
 
-**A redux app is made of:**
+#### A redux app is made of:
 - components (dumb)
 - containers (smart)
 - modules (duck)
 
-**A duck is made of:**
+#### A module is made of:
 - constants
 - actions
 - reducers
@@ -105,8 +110,11 @@ There's a good [write-up about "smart" and "dumb" components](https://medium.com
 
 #### Key ideas
 1. **Components should be simple templates** - A component uses React
+
 2. **Containers connect a component to the store** - A container uses React-Redux
+
 3. **The Store is immutable by convention** - The store is Redux
+
 4. **Modules control specific parts of the store** - A module is where you'll interact with middleware
 
 ## Components should be simple templates
@@ -143,7 +151,7 @@ Link.propTypes = {
 export default Link
 ```
 
-1. The `Link` component is a stateless functional component. You can define these as simple functions that accept `props` argument. Here we're destructuring the props argument into `active`, `children`, and `onClick`. We're using a fat-arrow function to be cool.
+1. The `Link` component is a stateless functional component. You can define these as simple functions that accept a `props` argument. Here we're destructuring the props argument into `active`, `children`, and `onClick`. We're using a fat-arrow function to be cool.
 
   ```js
   const Link = ({ active, children, onClick }) => {
@@ -232,7 +240,7 @@ export default DumbComponent
 *Note:* PropTypes is explained in the massive code block at the top of the [React manual page for reusable components](http://facebook.github.io/react/docs/reusable-components.html).
 
 #### Example of a component using the class syntax
-*Note:* You should only need to use the [fancier ES6 class syntax](http://facebook.github.io/react/blog/2015/01/27/react-v0.13.0-beta-1.html#es6-classes) introduced in React 0.13 in special cases. There's a great write-up on the Babel blog on [the ES6 way to write React components](https://babeljs.io/blog/2015/06/07/react-on-es6-plus) but it doesn't cover the newer stateless functional component syntax.
+*Note:* You should only need to use the [fancier ES6 class syntax](http://facebook.github.io/react/blog/2015/01/27/react-v0.13.0-beta-1.html#es6-classes) (introduced in React 0.13) in special cases. There's a great write-up on the Babel blog on [the ES6 way to write React components](https://babeljs.io/blog/2015/06/07/react-on-es6-plus) but it doesn't cover the newer stateless functional component syntax.
 
 ```jsx
 import React, { Component, PropTypes } from 'react'
@@ -307,9 +315,11 @@ export default FilterLink
 
 It's important to go over the steps that are involved here.
 
-1. `FilterLink` is a container component. It uses the `connect()` function to map values from the Redux `state` and `dispatch()` to properties on the `Link` component. There's a reason the two arguments are "map state" and "map dispatch" to props.
+1. `FilterLink` is a container component. It uses the [`connect()`](https://github.com/reactjs/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options) function to map values from the Redux `state` and `dispatch()` to properties on the `Link` component. There's a reason the two arguments are "map state" and "map dispatch".
 
   ```js
+  // connect() is from react-redux
+  // @see https://github.com/reactjs/react-redux
   const FilterLink = connect(
     mapStateToProps,
     mapDispatchToProps
@@ -360,18 +370,18 @@ It's important to go over the steps that are involved here.
         // when we click in the component we dispatch an action to Redux
         // here we're using the setVisibilityFilter action creator
         // same as dispatch({ type: 'SET_VISIBILITY_FILTER', payload: ownProps.filter })
-        dispatch(setVisibilityFilter(ownProps.filter))
+        dispatch( setVisibilityFilter(ownProps.filter) )
       }
     }
   }
   ```
 
 ### Containers in a nutshell
-A container maps values from the Redux store to properties on a React component. It reads from the store when a component is first loaded and after the store has been updated. In order to closely monitor when the store has been updated, Redux only allows you to *dispatch* actions. From a container it is not really possible to know what an action does because Redux separates that functionality into *reducers*.
+A container maps values from the Redux store to properties on a React component. It reads from the store when a component is first loaded and after the store has been updated. In order to closely monitor when the store has been updated Redux only allows you to *dispatch* actions. From a container it is not really possible to know what an action does because Redux separates that functionality into *reducers*.
 
 If the concept of reducers seems totally foreign right now then you completely understand why **smart components only dispatch actions and read from the store**. Writing to the store is a task for reducers.
 
-Containers are all about reading from the store and sending actions to Redux.
+Containers are all about reading from the store and dispatching actions to Redux.
 
 
 ## The Store is immutable by convention
@@ -380,12 +390,12 @@ If you've been reading up on React and Redux you've probably come across librari
 There are a great number of fascinating advantages that surface from the simple decision of Redux to store all of the application state in a single immutable object. Redux is a methodology and minimal toolkit for working with the store. This is the next part of React-Redux that can seem very daunting. Redux's simplicity becomes it's great power. Utilizing barebones JavaScript and good conventions is the spirit of Redux. There is no need for something like Immutable.js when you're doing Redux correctly.
 
 ### The Store is what you make of it
-Everything uses the same store. If you put something in the store a container can read from it. There are no restrictions of which part of the store you can write to or read from. At it's base level it might feel a little disorganized or even insecure. But the store is what you make of it. We'll see that people commonly organize things into modules and use some basic Redux functionality that makes things a little less scary.
+Everything uses the same store. If you put something in the store, a container can read from it. There are no restrictions of which part of the store you can write to or read from. At it's base level it might feel a little disorganized or even insecure. But the store is what you make of it. We'll see that people commonly organize things into modules and use some basic Redux functionality that makes things a little less scary.
 
 We'll see later that there are some conventions emerging about how to maintain data that you recieved from an API. Those patterns can be stamped into other parts of your app because of how well Redux encapsulates functionality.
 
 ## Modules control specific parts of the store
-In the Redux world it's now popular to group *constants*, *action creators* and *reducers* into a single file called a "module" or a "[duck](https://github.com/erikras/ducks-modular-redux)." It's actually fine to do it the old way and break them into separate `constants/`, `actions/` and `reducers/` folders if you want. Both methods make sense for different use cases. For most people starting out it's easier to put all of those things together in a `modules/` folder. If you run into a case where modules need to re-use functionality from each other then you've just discovered why the Redux manual suggests keeping them separate.
+In the Redux world it's now popular to group *constants*, *action creators* and *reducers* into a single file called a "module" or a "[duck](https://github.com/erikras/ducks-modular-redux)." It's actually fine to do it the old way and break them into separate `constants/`, `actions/` and `reducers/` folders if you want. Either style make sense for different use cases. For most people starting out it's easier to put all of those things together in a `modules/` folder. If you run into a case where modules need to re-use functionality from each other then you've just discovered why the Redux manual suggests keeping them separate.
 
 This starts make more sense with some code. The following is a combination of the [`actions.js`](http://redux.js.org/docs/basics/Actions.html#-actions-js) and the [`reducers.js`](http://redux.js.org/docs/basics/Reducers.html#-reducers-js) files in the classic [React-Redux Todo example](https://github.com/reactjs/redux/tree/master/examples/todos). The action creator and reducer have been rewritten using [redux-actions](https://github.com/acdlite/redux-actions) for simplicity. For brevity we're only looking at the `visibilityFilter` example from the link component we're exploring. A lot changed here but it will make sense in a second.
 
@@ -423,7 +433,7 @@ Let's dig into what's going on here:
   export const setVisibilityFilter = createAction(SET_VISIBILITY_FILTER)
   
   // action creators are super simple
-  console.log(setVisibilityFilter)
+  console.log( setVisibilityFilter )
   /* -->
   function(payload) {
     return { type: SET_VISIBILITY_FILTER, payload }
@@ -452,7 +462,6 @@ Let's dig into what's going on here:
       onClick: () => {
         // we have to dispatch our actions manually
         dispatch(setVisibilityFilter(ownProps.filter))
-        
       }
     }
   }
@@ -464,11 +473,12 @@ Let's dig into what's going on here:
   export const visibilityFilter = handleActions({
     [SET_VISIBILITY_FILTER]: (state, { payload }) => payload
   }, 'SHOW_ALL')
-
+  
+  // a reducer is really simple
   console.log(visibilityFilter);
   /* -->
   function(state = 'SHOW_ALL', action) {
-    switch() {
+    switch(action.type) {
       case SET_VISIBILITY_FILTER: return action.payload
       default: return state
     }
@@ -526,5 +536,5 @@ Let's dig into what's going on here:
 # Next
 
 1. Next we'll [build the Todo app](./react-redux-starter-kit-todos.md) from the manual with react-redux-starter-kit and redux-cli.
-1. We'll use Redux-saga to manage our asynchronous side effects.
+1. We'll [use Redux-saga](./redux-sagas-todos.md) to manage our asynchronous side effects.
 1. We'll make it work with a JSONAPI server for persisting todos to the database.
