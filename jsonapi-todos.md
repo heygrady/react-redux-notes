@@ -5,14 +5,19 @@ Of course you can use any JSON format that suits the needs of your project but J
 
 For lack of a better standard, and because we need our API server to *just work*, we're going to use jsonapi-server.
 
-## Install jsonapi-server
-We're assuming that you've been building something like the [todos app described in the other notes](./react-redux-starter-kit-todos.md). In the previous notes we were doing our work in a `~/Projects/tests/todos-app/` folder. We're going to be creating a `~/Projects/tests/todos-api/` folder right next to it even compying some files from the other folder. If you're using a slightly different folder structure you may have to pay attention below.
-
+### Node and ES2015
 We're going to be writing everything in ES2015 to keep it consistent with the frontend app. This is slightly swimming up stream but [Node is rapidly gaining ES2015 features](http://node.green/) and it's dead-simple to use something like [`babel-preset-node5`](https://www.npmjs.com/package/babel-preset-node5) to only use babel for the parts your version of Node is missing.
+
+You can read more about [using ES6 with npm](http://mammal.io/articles/using-es6-today/).
 
 **NOTE:** You should install the [current version of node](https://nodejs.org/en/download/current/) available for your platform. There is no good reason to wait unless you are using an extremely old package that relies on an obscure deprecated feature of Node. You shouldn't be using [packages that aren't compatible](https://github.com/nodejs/node/issues/2798) with the latest version of Node.
 
 **NOTE:** If you are using a different version of Node, use the proper `babel-preset-nodeX` for your version: [babel-preset-es2015-node4](https://www.npmjs.com/package/babel-preset-es2015-node4), [babel-preset-node5](https://www.npmjs.com/package/babel-preset-node5), [babel-preset-node6](https://www.npmjs.com/package/babel-preset-node6).
+
+## Install jsonapi-server
+We're assuming that you've been building something like the [todos app described in the other notes](./react-redux-starter-kit-todos.md). In the previous notes we were doing our work in a `~/Projects/tests/todos-app/` folder.
+
+For the API server we're going to be create a `~/Projects/tests/todos-api/` folder and copying some files from the other folder. *If you're using a slightly different folder structure you may have to pay attention below*.
 
 ```bash
 # starting in a folder like ~/Projects/tests/
