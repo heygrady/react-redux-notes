@@ -37,6 +37,8 @@ Get it? You "walk" a generator function in "steps". The function "pauses" after 
 3. The [`yield`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield) keyword means "return and pause", it's why you don't normally see a `return` in generator. If you do add in a `return` it will be used as the `value` on the very last `next()` call.
 4. You should read about [Iterators and Generators](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators)
 
+**redux-saga walks your generators for you. That's it's best feature!**
+
 ### What is redux-saga?
 You probably want to read about sagas to get [an authoratative definition](https://msdn.microsoft.com/en-us/library/jj591569.aspx) -- don't bother. Although there is an excellent write up on [why redux-saga is great](http://riadbenguella.com/from-actions-creators-to-sagas-redux-upgraded/). In the simplest terms (forget about generators for a second), redux-sagas is a task runner -- it literally runs whatever function you give it and goes away. We'll see later on that the main "software" that comes in the redux-saga package is the sagaMiddleware. Read some of these [saga resources](http://yelouafi.github.io/redux-saga/docs/ExternalResources.html) for more information.
 
@@ -58,7 +60,7 @@ The classic example is [using redux-saga to make a `fetch()` request](http://yel
 To manage asynchronous actions, redux-saga utilizes generator functions. Generators were *specifically* designed to manage asynchronous actions. If you have been trying to get used to Promises, then you'll get the root concepts right away. If you're used to callbacks you'll quickly see why this is better. A generator looks a lot like a [promise chain](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then) or a [callback hell](http://callbackhell.com/).
 
 ##### A promise chain
-In a promise chain you can keep adding `then()` functions to a promise. It ensures that your additional actions execute only after the initial promise has resolved. Check out a more [complete example](https://repl.it/CR47/9)
+In a promise chain you can keep adding `then()` functions to a promise. It ensures that your additional actions execute only after the initial promise has resolved. Check out a more [complete example in the JavaScript REPL](https://repl.it/CR47/9).
 
 ```js
 // a promise chain
@@ -72,7 +74,7 @@ fetchSomething()
 ```
 
 ##### A callback hell
-You should read about [callback hell](http://callbackhell.com/) and also how [reactive programming is better](http://stackoverflow.com/questions/25098066/what-is-callback-hell-and-how-and-why-rx-solves-it). Check out a more [complete example](https://repl.it/CR47/8).
+You should read about [callback hell](http://callbackhell.com/) and also how [reactive programming is better](http://stackoverflow.com/questions/25098066/what-is-callback-hell-and-how-and-why-rx-solves-it). Check out a more [complete example in the JavaScript REPL](https://repl.it/CR47/8).
 
 ```js
 // a callback hell
@@ -84,7 +86,7 @@ fetchSomething(result => {
 ```
 
 ##### A generator function
-Generators are the core of reactive programming. It's basically the same thing as a callback hell or a promise chain but it gives the user much more control. You have to walk your generators (see below). Check out a more [complete example](https://repl.it/CR47/11).
+Generators are the core of reactive programming. It's basically the same thing as a callback hell or a promise chain but it gives the user much more control. You have to walk your generators (see below). Check out a more [complete example in the JavaScript REPL](https://repl.it/CR47/11).
 
 ```js
 // a generator function
@@ -178,13 +180,13 @@ Thankfully redux-saga has [support for dynamically loading sagas](https://github
 
 We need to import our rootSaga and the sagaMiddleware from our `sagas.js` file (we'll make that file next). We also need to run our middleware with the root saga before returning the store. Redux-saga requires you to "run" your sagas. It's not important how it works but you can't skip this step.
 
-**You need to add some code to your `createStore.js` to integrate the sagaMiddleware.**
+We need to add some code to your `createStore.js` to integrate the sagaMiddleware.
 
 ##### `src/store/createStore.js`
-(compare to [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/store/createStore.js))
+(compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/store/createStore.js))
 
 ```js
-// ...
+// ... snippet from src/store/createStore.js
 
 // we're already importing our reducers
 import reducers from './reducers'
@@ -213,7 +215,7 @@ If you are not running any sagas app-wide then you can shorten the code above to
 This shows the same alterations to `createStore.js` above with the `rootSaga` commented out. In many cases you don't need a rootSaga at the application level. It all depends on your app.
 
 ```js
-// ...
+// ... alternative snippet from src/store/createStore.js
 
 import reducers from './reducers'
 import { sagaMiddleware } from './sagas'
@@ -223,7 +225,8 @@ export default (initialState = {}, history) => {
 
   // ...
 
-  // purposely didn't run our root saga because we only run sagas from our routes (common)
+  // we purposely didn't run our root saga
+  // because we only run sagas from our routes (common)
   // sagaMiddleware.run(rootSaga)
 
   return store
@@ -238,7 +241,7 @@ Within redux-saga, the [`sagaMiddleware.run(saga)`](http://yelouafi.github.io/re
 
 We also need a `cancelTask(name)` function for canceling our named tasks. This makes it possible to manage sagas dynamically from our routes. We run our sagas when we enter a route; cancel them when we leave a route.
 
-**You need to create a `sagas.js` file.**
+We need to create a `sagas.js` file.
 
 ```bash
 touch src/store/sagas.js
@@ -297,6 +300,8 @@ Let's dig into this step-by-step.
 #### You can import and run app sagas
 We're treating our sagas similarly to reducers. The [`src/store/reducers.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/store/reducers.js) file is where you'd import a reducer that all of your app would use. Otherwise you'd import reducers within your route. The starter kit calls them "sync reducers" because they are loaded synchronously as the app loads. "Async reducers" are loaded in a route, asynchronously. We're going to copy that format and load our "sync sagas" in the `src/store/sagas.js` file. You might refer to these types of reducers and sagas as "app sagas" because they're loaded at the app level. As opposed to "route" sagas and reducers which are loaded at the route level.
 
+Here we're pretending that we have some sagas available that we'd like to import app-wide.
+
 ```js
 // ... snippet from src/store/sagas.js
 
@@ -315,7 +320,7 @@ export default function * rootSaga () {
 ```
 
 #### Export the sagaMiddleware
-This is where we created the middleware we used in `src/store/createStore.js`. We create an `injectSaga()` function so that we don't have to muck with the middleware directly outside of `createStore.js`. In order for a saga to respond to redux actions it needs to be "run" by the saga middleware.
+This is where we create the middleware we used in `src/store/createStore.js`. We create an `injectSaga()` function so that we don't have to muck with the middleware directly outside of `createStore.js`. In order for a saga to respond to redux actions it needs to be "run" by the saga middleware.
 
 ```js
 // ... snippet from src/store/sagas.js
