@@ -1153,6 +1153,7 @@ Finally we add a label to all of our pending todos. There is no complex logic in
 
 ##### `src/routes/components/Todos.js`
 (compare to [previous `src/routes/components/Todos.js`](./react-redux-starter-kit-todos.md#srcroutestodoscomponentstodosjs))
+
 ```jsx
 // src/routes/components/Todos.js
 
