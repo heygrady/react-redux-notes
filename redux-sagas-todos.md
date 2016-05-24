@@ -158,19 +158,20 @@ fetchSomething(result => {
 ```
 
 ##### A generator function
-Generators are the core of reactive programming. It's basically the same thing as a callback hell or a promise chain but it gives the user much more control. You have to walk your generators (see below). Check out a more [complete example in the JavaScript REPL](https://repl.it/CR47/11).
+Generators allow functions to be paused. It's basically the same thing as a callback hell or a promise chain but it gives the user much more control. You have to walk your generators (see below). Check out a more [complete example in the JavaScript REPL](https://repl.it/CR47/11).
 
 ```js
 // a generator function
 function * doThingsWithSomething () {
-  let result
-  result = yield fetchSomething()
-  result = yield firstThing(result)
+  const result = yield fetchSomething()
+  yield firstThing(result)
   yield secondThing(result)
 }
 
+// you have to walk your generator object
 const task = doThingsWithSomething()
 ```
+
 
 ##### Walking a generator function
 Generators give you a lot of control from the outside. It's subtle in the above example but the value captured in `result = yield fetchSomething()` is actually passed in from the outside using the [`next()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator/next) function. Internally redux-saga takes full advantage of this, except it passes in the result from the previous effect. If this doesn't make sense don't worry -- redux-saga does this for you!
@@ -179,6 +180,7 @@ Generators give you a lot of control from the outside. It's subtle in the above 
 // you can walk a generator
 // (redux-saga does this for you)
 function walkTask(task, result = {}) {
+  // iterate over the generator object until it is done
   while (!result.done) {
     result = task.next(result.value) // <-- call next() with the previously yielded value
     
@@ -212,14 +214,11 @@ Here's the async example from above rewritten as a saga:
 ```js
 // a saga
 function * doThingsWithSomething () {
-  let result
-  result = yield call(fetchSomething()) // <-- presume fetchSomething returns a value, promise or generator
-  result = yield put(firstThing(result)) // <-- presume firstThing is an action
+  const result = yield call(fetchSomething) // <-- fetchSomething returns a promise
+  yield put(firstThing(result)) // <-- firstThing is an action, result is the payload
   yield put(secondThing(result))
 }
 ```
-
-*Note:* The saga above is not quite right. Usually the return value yielded from `put` is the action that it dispatched, so in the example above our `secondThing` will recieve the action returned from the `firstThing` action creator. You wouldn't normally do that. There's a much better example below.
 
 Here's some important notes about sagas:
 
@@ -371,6 +370,15 @@ export const createWatcher = (actionType, saga) => {
   }
 }
 
+export const watchActions = (sagas) => {
+  const watchers = Object.keys(sagas)
+    .map((type) => createWatcher(type, sagas[type]))
+
+  return function * rootSaga () {
+    yield watchers
+  }
+}
+
 // run once when store is created
 export default function * rootSaga () {
   yield [
@@ -384,7 +392,7 @@ Let's dig into this step-by-step.
 #### You can import and run app-wide sagas
 We're treating our sagas similarly to reducers. The [`src/store/reducers.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/store/reducers.js) file is where you'd import a reducer that all of your app would use. Otherwise you'd import reducers within your route using `indectReducer()`. If you look in the `reducers.js` file you'll see that app-wide reducers are called "sync reducers" because they are loaded synchronously as the app loads. "Async reducers" are loaded in a route, asynchronously, using webpack. We're going to copy that format and load our "sync sagas" in the `src/store/sagas.js` file and our "async sagas" in our route using `injectSaga()`. You might refer to these types of reducers and sagas as "app sagas" because they're loaded at the app level. As opposed to "route" sagas and reducers which are loaded at the route level.
 
-Here we're pretending that we have some sagas available that we'd like to import app-wide. We'll see later that it's more common to run your sagas when you enter a route. (You can see examples of these sagas in the [beginners tutorial](http://yelouafi.github.io/redux-saga/docs/introduction/BeginnerTutorial.html))
+Here we're pretending that we have some sagas available that we'd like to import app-wide. We'll see later that it's more common to run your sagas when you enter a route. (You can see examples of these sagas in the [beginners tutorial](http://yelouafi.github.io/redux-saga/docs/introduction/BeginnerTutorial.html).)
 
 ```js
 // ... snippet from src/store/sagas.js
@@ -414,7 +422,7 @@ This is where we create the middleware we used in `src/store/createStore.js`. We
 export const sagaMiddleware = createSagaMiddleware()
 
 // if we just want to run a single saga, we can use this
-// (usually when you're doing something clever and one-off)
+// (usually when you're doing something clever)
 export const runSaga = (saga) => sagaMiddleware.run(saga)
 
 // ...
@@ -445,6 +453,34 @@ export const injectSaga = ({ name, saga }) => {
     }
   }
 }
+```
+
+#### Watching for actions
+For reducers we're using the [`handleActions()`](https://github.com/acdlite/redux-actions#handleactionsreducermap-defaultstate) from redux-actions. For our sagas we'll want to do something similar.
+
+```js
+// ... example of using watchActions() inside a module
+
+// ... 
+import { watchActions } from '../store/sagas.js'
+
+// constants
+export const MY_ACTION_TYPE = 'MY_ACTION_TYPE'
+export const ANOTHER_ACTION_TYPE = 'ANOTHER_ACTION_TYPE'
+
+// sagas
+function * mySaga (action) {
+  yield true
+}
+
+function * anotherSaga (action) {
+  yield true
+}
+
+export const rootSaga = watchActions({
+  [MY_ACTION_TYPE]: mySaga,
+  [ANOTHER_ACTION_TYPE]: anotherSaga
+})
 ```
 
 ## Dynamically load a saga from a route
@@ -517,6 +553,7 @@ Here's an empty module. We'll be filling this in. We've already done this in the
 
 ```js
 import { combineReducers } from 'redux'
+import { watchActions } from '../store/sagas'
 
 // selectors
 
@@ -527,11 +564,9 @@ import { combineReducers } from 'redux'
 // sagas
 
 // combine sagas
-export function * rootSaga () {
-  yield [
-    // combine all of your module's sagas
-  ]
-}
+export const rootSaga = watchActions({
+  // combine all of your module's sagas
+})
 
 // reducers
 
@@ -591,13 +626,11 @@ function * anotherSaga ({ payload }) {
 }
 
 // combine sagas
-export function * rootSaga () {
-  yield [
-    // combine all of your module's sagas
-    createWatcher(MY_ASYNC_ACTION, mySaga)(), // <-- calls the mySaga generator on MY_ASYNC_ACTION
-    createWatcher(ANOTHER_ASYNC_ACTION, anotherSaga)()
-  ]
-}
+export const rootSaga = watchActions({
+  // combine all of your module's sagas
+  [MY_ASYNC_ACTION]: mySaga, // <-- calls the mySaga generator on MY_ASYNC_ACTION
+  [ANOTHER_ASYNC_ACTION]: anotherSaga
+})
 
 // reducers
 const myReducer = handleActions({
@@ -642,7 +675,7 @@ import { createSelector } from 'reselect'
 import { v4 as uuid } from 'node-uuid'
 import { delay } from 'redux-saga'
 import { put } from 'redux-saga/effects'
-import { createWatcher } from '../../../store/sagas'
+import { watchActions } from '../../../store/sagas'
 
 // selectors
 export const getAppState = (state) => state.todosApp
@@ -689,11 +722,9 @@ export function * addTodoAsyncSaga ({ payload }) {
 }
 
 // combine sagas
-export function * rootSaga () {
-  yield [
-    createWatcher(ADD_TODO_ASYNC, addTodoAsyncSaga)()
-  ]
-}
+export const rootSaga = watchActions({
+  [ADD_TODO_ASYNC]: addTodoAsyncSaga
+})
 
 // Reducers
 const todo = handleActions({
@@ -863,7 +894,7 @@ We did a fairly thorough job of exploring sagas above. It might seem complicated
 
 import { delay } from 'redux-saga'
 import { put } from 'redux-saga/effects'
-import { createWatcher } from '../../../store/sagas'
+import { watchActions } from '../../../store/sagas'
 
 // sagas
 
@@ -890,15 +921,11 @@ export function * addTodoAsyncSaga ({ payload }) {
 }
 
 // combine sagas
+export const rootSaga = watchActions({
 
-// yielding an array is how you run sagas in parallel
-export function * rootSaga () {
-  yield [
-
-    // subscribe to run a saga when an action occurs
-    createWatcher(ADD_TODO_ASYNC, addTodoAsyncSaga)()
-  ]
-}
+  // subscribe to run a saga when an action occurs
+  [ADD_TODO_ASYNC]: addTodoAsyncSaga
+})
 ```
 
 ### Creating actions for our saga
@@ -1106,8 +1133,6 @@ Finally we add a label to all of our pending todos. There is no complex logic in
 (compare to [previous `src/routes/components/Todos.js`](./react-redux-starter-kit-todos.md#srcroutestodoscomponentstodosjs))
 
 ```jsx
-// src/routes/components/Todos.js
-
 import React, { PropTypes } from 'react'
 
 const Todo = ({ onClick, completed, pending, text }) => (
