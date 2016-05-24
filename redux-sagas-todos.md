@@ -64,7 +64,7 @@ function * mySaga(action) {
 sagaMiddleware.run(mySaga)
 ```
 
-*Note:* Normally you'd yield an effect like [`put()`](http://yelouafi.github.io/redux-saga/docs/api/index.html#putaction) instead of `true`.) 
+*Note:* Normally you'd yield an effect like [`put()`](http://yelouafi.github.io/redux-saga/docs/api/index.html#putaction) instead of `true`.
 
 In a normal middleware like redux-thunk the asynchronous functionality gets baked directly into your action. In redux-saga it's different. **The *saga* is the *target* of an action**, more like a reducer. The `sagaMiddleware` is the bridge between dispatched actions and your saga. If you find yourself working with the sagaMiddleware all the time you're probably doing something pretty advanced. Usually you'll want to run your sagas as part of your route. We'll see that in practice later on.
 
