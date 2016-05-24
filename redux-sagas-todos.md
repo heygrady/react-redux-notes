@@ -119,8 +119,10 @@ function * mySaga (action) {
 
 // you can use takeEvery to watch an actionType
 // and run your saga everytime it is dispatched
-return function * createWatcher (actionType, saga) {
-  yield * takeEvery(actionType, saga)
+const createWatcher = (actionType, saga) => {
+  return function * () {
+    yield * takeEvery(actionType, saga)
+  }
 }
 
 sagaMiddleware.run(createWatcher(FETCH_SOMETHING, mySaga))
@@ -363,8 +365,10 @@ export const cancelTask = (name) => {
   }
 }
 
-export function * createWatcher (actionType, saga) {
-  yield * takeEvery(actionType, saga)
+export const createWatcher = (actionType, saga) => {
+  return function * () {
+    yield * takeEvery(actionType, saga)
+  }
 }
 
 // run once when store is created
@@ -590,8 +594,8 @@ function * anotherSaga ({ payload }) {
 export function * rootSaga () {
   yield [
     // combine all of your module's sagas
-    createWatcher(MY_ASYNC_ACTION, mySaga), // <-- calls the mySaga generator on MY_ASYNC_ACTION
-    createWatcher(ANOTHER_ASYNC_ACTION, anotherSaga)
+    createWatcher(MY_ASYNC_ACTION, mySaga)(), // <-- calls the mySaga generator on MY_ASYNC_ACTION
+    createWatcher(ANOTHER_ASYNC_ACTION, anotherSaga)()
   ]
 }
 
@@ -687,7 +691,7 @@ export function * addTodoAsyncSaga ({ payload }) {
 // combine sagas
 export function * rootSaga () {
   yield [
-    createWatcher(ADD_TODO_ASYNC, addTodoAsyncSaga)
+    createWatcher(ADD_TODO_ASYNC, addTodoAsyncSaga)()
   ]
 }
 
@@ -892,7 +896,7 @@ export function * rootSaga () {
   yield [
 
     // subscribe to run a saga when an action occurs
-    createWatcher(ADD_TODO_ASYNC, addTodoAsyncSaga)
+    createWatcher(ADD_TODO_ASYNC, addTodoAsyncSaga)()
   ]
 }
 ```
