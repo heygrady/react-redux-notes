@@ -330,7 +330,7 @@ This is a more straighforward file than a route because it's just a simple prese
 We need to add the following code to our view.
 
 ##### `src/routes/Todos/components/TodosView.js`
-Compare to [`components/app.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-app-js) from the [todos tutorial](http://redux.js.org/docs/basics/index.html).
+(compare to [original `components/app.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-app-js) from the [todos tutorial](http:/)redux.js.org/docs/basics/index.html).
 
 ```jsx
 import React from 'react'
@@ -408,7 +408,7 @@ redux g component Footer --path routes/Todos
 ```
 
 ##### `src/routes/Todos/components/Footer.js`
-Compare to [`components/Footer.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-footer-js).
+(compare to [original `components/Footer.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-footer-js))
 
 ```jsx
 import React from 'react'
@@ -449,7 +449,7 @@ redux g container FilterLink --path routes/Todos
 ```
 
 ##### `src/routes/Todos/containers/FilterLink.js`
-Compare to [`containers/FilterLink.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-filterlink-js).
+(compare to [original `containers/FilterLink.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-filterlink-js))
 
 ```js
 import { connect } from 'react-redux'
@@ -492,7 +492,7 @@ redux g component Link --path routes/Todos
 ```
 
 ##### `src/routes/Todos/components/Link.js`
-Compare to [`components/Link.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-link-js).
+(compare to [original `components/Link.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-link-js))
 
 ```jsx
 import React, { PropTypes } from 'react'
@@ -544,7 +544,7 @@ redux g module todos --path routes/Todos
 ```
 
 ##### `src/routes/Todos/modules/todos.js`
-Compare to [`actions/index.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-actions-index-js) and [`reducers/todos.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-reducers-todos-js).
+(compare to [original `actions/index.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-actions-index-js) and [`reducers/todos.js`](http:/)redux.js.org/docs/basics/ExampleTodoList.html#-reducers-todos-js).
 
 ```js
 import { combineReducers } from 'redux'
@@ -620,7 +620,7 @@ redux g form AddTodo --path routes/Todos
 *Note:* If you want to use redux-cli to create forms you need to intall it first: `npm install redux-forms --save`.
 
 ##### `src/routes/Todos/containers/AddTodo.js`
-Compare to [`containers/AddTodo.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-addtodo-js).
+(compare to [original `containers/AddTodo.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-addtodo-js))
 
 ```js
 import React, { PropTypes } from 'react'
@@ -679,7 +679,7 @@ redux g container VisibleTodoList --path routes/Todos
 ```
 
 ##### `src/routes/Todos/containers/VisibleTodoList.js`
-Compare to [`containers/VisibleTodoList.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-visibletodolist-js).
+(compare to [original `containers/VisibleTodoList.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-containers-visibletodolist-js))
 
 ```js
 import { connect } from 'react-redux'
@@ -741,7 +741,7 @@ redux g component TodoList --path routes/Todos
 
 
 ##### `src/routes/Todos/components/TodoList.js`
-Compare to [`components/TodoList.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-todolist-js).
+(compare to [original `components/TodoList.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-todolist-js))
 
 ```jsx
 import React, { PropTypes } from 'react'
@@ -787,8 +787,8 @@ touch tests/routes/Todos/components/Todo.spec.js
 redux g component Todo --path routes/Todos
 ```
 
-##### Todo: `src/routes/Todos/components/Todo.js`
-Compare to [`components/Todo.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-todo-js).
+##### `src/routes/Todos/components/Todo.js`
+(compare to [original `components/Todo.js`](http://redux.js.org/docs/basics/ExampleTodoList.html#-components-todo-js))
 
 ```jsx
 import React, { PropTypes } from 'react'
