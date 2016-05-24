@@ -372,7 +372,7 @@ Here we're using the NPM script that comes with react-redux-starter-kit for laun
 npm run dev
 ```
 
-*Note: * If it's annoying that the dev tools open in a new window you might want to comment this feature out in `src/main.js`.
+*Note:* If it's annoying that the dev tools open in a new window you might want to comment this feature out in `src/main.js`.
 
 ```js
 // ... snippet from src/main.js
