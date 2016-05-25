@@ -53,7 +53,7 @@ Here's an example of a saga that's only configured to run once. We'll see later 
 
 ```js
 // a saga is just a generator function that recieves an action
-function * mySaga(action) {
+function * mySaga (action) {
   // usually you'd yield an effect instead of true
   // you can yield effects to manage how your saga is walked
   yield true
@@ -372,7 +372,7 @@ export const createWatcher = (actionType, saga) => {
 
 export const watchActions = (sagas) => {
   const watchers = Object.keys(sagas)
-    .map((type) => createWatcher(type, sagas[type]))
+    .map((type) => createWatcher(type, sagas[type])())
 
   return function * rootSaga () {
     yield watchers
