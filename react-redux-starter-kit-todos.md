@@ -67,6 +67,13 @@ npm install
 
 You can poke around if you'd like. You should read about [what's in the box](https://github.com/davezuko/react-redux-starter-kit) and [how to use it](https://suspicious.website/2016/04/29/starting-out-with-react-redux-starter-kit/) if you haven't already. For our purposes we'll mostly be working in the `src/` folder.
 
+#### Add redux-actions
+We're going to be using [redux-actions](https://github.com/acdlite/redux-actions) to make creating actions and reducers easier. Because react-redux projects use NPM for dependency management it's easy to incorporate additional node modules in your project.
+
+```bash
+npm install --save redux-actions
+```
+
 #### Rename `dumb`, `smart` and `duck` blueprints
 For fun -- and to give a small taste of what blueprints are capable of -- let's rename some of the default blueprints. Renaming the folders under `blueprints/` changes how you call the generators. Now instead of calling something like `redux g dumb MyName` you would use `redux g component MyName`. It makes sense to rename these blueprints because if you look you'll see that the react-redux-starter-kit names those folders `components/`,  `containers/` and  `redux/modules/` respectively.
 
@@ -107,7 +114,7 @@ redux g route Todos
 ```
 
 ## Todos Route
-We need to add some boilerplate code to our route file. You can see the way the router itself is configured by checking in [`src/routes/index.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js). By default your app is configured to allow for lazy-loading of routes. This is an important consideration for large apps and it's easy enough to support it from the very beginning. You don't have to know exactly how all of this magic works but you need understand that it's important. Under the hood we're [using Webpack's code-splitting feature](https://webpack.github.io/docs/code-splitting.html) for performance.
+We need to add some boilerplate code to our route file. You can see the way the router itself is configured by checking in [`src/routes/index.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js). By default your app is configured to allow for lazy-loading of routes. This is an important consideration for large apps and it's easy enough to support it from the very beginning. You don't have to know exactly how all of this magic works but you need to understand that it's important. Under the hood we're [using Webpack's code-splitting feature](https://webpack.github.io/docs/code-splitting.html) for performance.
 
 We need to add the following code to our new route.
 
