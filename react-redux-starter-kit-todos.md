@@ -460,7 +460,7 @@ redux g container FilterLink --path routes/Todos
 
 ```js
 import { connect } from 'react-redux'
-import { setVisibilityFilter } from '../modules/Todos'
+import { setVisibilityFilter } from '../modules/todos'
 import Link from '../components/Link'
 
 const mapStateToProps = (state, ownProps) => {
@@ -632,7 +632,7 @@ redux g form AddTodo --path routes/Todos
 ```js
 import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
-import { addTodo } from '../modules/Todos'
+import { addTodo } from '../modules/todos'
 
 let AddTodo = ({ dispatch }) => {
   let input
@@ -690,7 +690,7 @@ redux g container VisibleTodoList --path routes/Todos
 
 ```js
 import { connect } from 'react-redux'
-import { fetchTodos, toggleTodo, saveTodo } from '../modules/Todos'
+import { fetchTodos, toggleTodo, saveTodo } from '../modules/todos'
 import TodoList from '../components/TodoList'
 
 const getVisibleTodos = (todos, filter) => {
