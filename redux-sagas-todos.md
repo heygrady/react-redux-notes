@@ -66,7 +66,7 @@ sagaMiddleware.run(mySaga)
 
 *Note:* Normally you'd yield an effect like [`put()`](http://yelouafi.github.io/redux-saga/docs/api/index.html#putaction) instead of `true`.
 
-In a normal middleware like redux-thunk the asynchronous functionality gets baked directly into your action. In redux-saga it's different. **The *saga* is the *target* of an action**, more like a reducer. The `sagaMiddleware` is the bridge between dispatched actions and your saga. If you find yourself working with the sagaMiddleware all the time you're probably doing something pretty advanced. Usually you'll want to run your sagas as part of your route. We'll see that in practice later on.
+In a normal middleware like redux-thunk the asynchronous functionality gets baked directly into your action. In redux-saga it's different. When you watch a saga with `takeEvery`, **the *saga* is the *target* of an action**, more like a reducer. The `sagaMiddleware` is the bridge between dispatched actions and your saga. If you find yourself working with the sagaMiddleware all the time you're probably doing something pretty advanced. Usually you'll want to run your sagas as part of your route. We'll see that in practice later on.
 
 What's important is that **your saga is just a function... a *generator* function.** 
 
@@ -128,12 +128,12 @@ const createWatcher = (actionType, saga) => {
 sagaMiddleware.run(createWatcher(FETCH_SOMETHING, mySaga))
 ```
 
-**A saga is the target of an action, not the action itself.** Sagas usually dispatch additional actions after waiting for an asynchronous response.
+When you create a watcher, **the saga is the target of an action, not the action itself.** Sagas usually dispatch additional actions after waiting for an asynchronous response.
 
 ### Different ways to manage async actions in JavaScript
 To manage asynchronous actions, redux-saga utilizes generator functions. Generators were *specifically* designed to manage asynchronous actions. If you have been trying to get used to Promises, then you'll get the root concepts right away. If you're used to callbacks you'll quickly see why this is better. A generator looks a lot like a [promise chain](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then) or a [callback hell](http://callbackhell.com/).
 
-Here's an overview of the typical ways you can manage asyncronous actions in JavaScript.
+You might enjoying reading [an excellent overview of how JavaScript manages async](https://medium.com/@rdsubhas/es6-from-callbacks-to-promises-to-generators-87f1c0cd8f2e). Below is an overview of the typical ways you can manage asyncronous actions in JavaScript.
 
 ##### A promise chain
 In a promise chain you can keep adding `then()` functions to a promise. It ensures that your additional actions execute only after the initial promise has resolved. Check out a more [complete example in the JavaScript REPL](https://repl.it/CR47/9).
