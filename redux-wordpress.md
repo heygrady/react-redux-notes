@@ -1,12 +1,15 @@
-# Using Wordpress with the react-redux
-We can use the [wp-api](http://v2.wp-api.org/) plugin to fetch Wordpress data over an API. This allows you build a react-redux application as you normally would and use Wordpress primarily as a CMS. Of course this approach means that your frontend site won't look very much like a Wordpress theme. If you really love Wordpress themes, then this probably isn't for you. If, however, you prefer to build your website using state of the art frontend best practices keep reading.
+# Using WordPress with the react-redux
+We can use the [wp-api](http://v2.wp-api.org/) plugin to fetch WordPress data over an API. This allows you build a react-redux application as you normally would and use WordPress primarily as a CMS -- meaning you don't have to use WordPress or PHP as your rendering engine. In our case we intend to use react-redux as our rendering engine. We're only going to be using WordPress as a data store and an admin tool. Of course this approach means that your frontend site won't look very much like a WordPress theme. If you really love WordPress themes, then this probably isn't for you. If, however, you prefer to build your website using state of the art frontend best practices... keep reading.
+
+Of course this approach doesn't require using react-redux. You could do something similar with Ember or Angular or any other frontend app.
 
 This is written assuming you've familiarized yourself with [the basic todos app](http://redux.js.org/docs/basics/index.html), [how it looks in react-redux-starter-kit](./react-redux-starter-kit-todos.md) and [using it with redux-saga](./redux-sagas-todos.md).
 
-### Wordpress has a demo API
-You can use [the demo wp-api](http://demo.wp-api.org/wp-json/wp/v2/) for this tutorial. It's the same as what you'd get if you installed the API on your own Wordpress installation. For the purposes of this tutorial we'll be ignoring the authentication step. This may be addressed in a future tutorial.
+### WordPress has a demo API
+You can use [the demo wp-api](http://demo.wp-api.org/wp-json/wp/v2/) for this tutorial. It's the same as what you'd get if you installed the API on your own WordPress installation. For the purposes of this tutorial we'll be ignoring the authentication step. This may be addressed in a future tutorial.
 
 ### Install react-router-scroll
+This is seperate from the core use of the WordPress API with react-redux. Later in the tutorial we're going to be building out a few pages with a list-detail relationship. Annoyingly, when you scroll down the list and click through to the detail page it doesn't scroll to the top. There is an issue where [react-router won't scroll to the top on route change](https://github.com/reactjs/react-router/issues/2019). Thankfully, there's a plugin that manages [react-router scroll](https://github.com/taion/react-router-scroll) behavior.
 
 ```bash
 npm install --save react-router-scroll
@@ -16,24 +19,31 @@ npm install --save react-router-scroll
 ```jsx
 // ... router snippet from main.js
 
+// the react-router-scroll manual hints at using a different browser history
+// however, we'll use the browser history that ships with react-redux-starter-kit
 import createBrowserHistory from 'history/lib/createBrowserHistory'
+
+// we need to apply the scroll behavior using react router's middleware
 import { applyRouterMiddleware, Router, useRouterHistory } from 'react-router'
-import { syncHistoryWithStore } from 'react-router-redux'
+
+// import the middleware for the scroll behavior
 import useScroll from 'react-router-scroll'
 
 // ...
-
-let render = (key = null) => {
-  // ...
+        // we apply the router middleware on render
         <Router history={history} children={routes} key={key} render={applyRouterMiddleware(useScroll())} />
-  // ...
-}
+// ...
 ```
+
+# What are we building?
+We're going to build the simplest example with the WordPress API to illustrate how to read data and display it in a react-redux app. We're going to read [the posts API](http://v2.wp-api.org/reference/posts/) and show examples of using the API to fetch posts by ID and by slug. We're also going to be adding two routes to our app. A route that lists out posts and a route that shows a post detail page. We'll set them up as nested routes. Finally we'll use the store to persist our requests.
+
+A future addition to this tutorial might cover things like pagination and preloading the posts in a universal app.
 
 ## Adding a route to our starter-kit app
 Let's add a route that will show all of the posts returned by the API. You can read more about [creating routes in the previous tutorial](./react-redux-starter-kit-todos.md#create-a-new-route).
 
-Here's some commands for creating the necessary new files
+Here's some commands for creating the necessary new files.
 
 ```bash
 mkdir -p src/routes/Posts/components
@@ -43,12 +53,13 @@ touch src/routes/Posts/modules/posts.js
 touch src/routes/Posts/index.js
 ```
 
-We need to create a Posts route:
+### Create Posts route
+We need to create a Posts route. Below is the boilerplate for a route, here we see a typical route that imports [`injectReducer`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/store/reducers.js#L12) and [`injectSaga`](./redux-sagas-todos.md#srcstoresagasjs) in order to register a module that will be used by connected components (containers). It also returns the default view. We'll see later that we need to use a layout instead of a view in order to support the detail page, but we'll ignore that for now.
 
 ##### `src/routes/Posts/index.js`
 ```js
 import { injectReducer } from '../../store/reducers'
-import { injectSaga, cancelTask } from '../../store/sagas'
+import { injectSaga } from '../../store/sagas'
 
 export default (store) => ({
   path: 'posts',
@@ -66,7 +77,10 @@ export default (store) => ({
 })
 ```
 
-We need to add our new Posts route to the index route.
+### Add Posts route to index
+We need to add our new Posts route to the index route. For this tutorial We're starting with the index route that ships with react-redux-starter-kit. We need to import our new Posts route and add it to the [`childRoutes`](https://github.com/reactjs/react-router/blob/master/docs/API.md#childroutes) array.
+
+*Note:* By default react-redux-starter-kit uses the [PlainRoute](https://github.com/reactjs/react-router/blob/master/docs/API.md#plainroute) style. This is highly recommneded because it gives you greater control over [things like code-splitting](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure#code-splitting-anatomy). Most react-router examples use the JSX interface so you will have to translate some of that to this different style. In practice it's not that hard but it's frustrating because the PlainRoute interface is sparsely documented. You can [use `createRoute()` to import JSX routes](https://github.com/reactjs/react-router/blob/master/docs/API.md#createroutesroutes) if you need ([read "Usage with JSX" here](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure#code-splitting-anatomy)).
 
 ##### `src/routes/index.js`
 ```js
@@ -321,7 +335,7 @@ export const createWatcher = (actionType, saga) => {
 
 export const watchActions = (sagas) => {
   const watchers = Object.keys(sagas)
-    .map((type) => createWatcher(type, sagas[type]))
+    .map((type) => createWatcher(type, sagas[type])())
 
   return function * rootSaga () {
     yield watchers
@@ -487,12 +501,14 @@ PostView.propTypes = {
 export default PostView
 ```
 
-### Update posts route to include child route
+## Update posts route to include child route
+This is easier said than done. There are a few gotchas when setting up nested routes. The most confusing aspect is [how to display the childRoutes view](https://github.com/davezuko/react-redux-starter-kit/issues/808). We'll see that you have to use a layout when you have childRoutes and that takes [extra configuration](https://github.com/davezuko/react-redux-starter-kit/issues/797). We're going to have to make some big changes to our Posts route.
 
-```bash
-mkdir -p src/routes/Posts/layouts
-touch src/routes/Posts/layouts/PostsLayout.js
-```
+We need to configure our Posts list view as the [`IndexRoute`](https://github.com/reactjs/react-router/blob/master/docs/API.md#indexroute-1) and our Posts detail route as the [`childRoute`](https://github.com/reactjs/react-router/blob/master/docs/API.md#childroutes). We could add additional child routes if we desired. A classic example would be an "add" route for adding new posts. For now we'll simply set up our list and detail routes.
+
+*Note:* Some examples show usage of [`getChildRoutes()`](https://github.com/reactjs/react-router/blob/master/docs/API.md#getchildrouteslocation-callback) to asynchronously load routes. **Don't use `getChildRoutes()` for code-splitting**. The react-redux-starter-kit has a note about [using `childRoutes` to load child routes synchonously](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js#L18). In short, asynchronous code-splitting should happen in [`getComponent()`](https://github.com/reactjs/react-router/blob/master/docs/API.md#getcomponentnextstate-callback).
+
+You can see that we're also using code-splitting to load the IndexRoute using [`getIndexRoute()`](https://github.com/reactjs/react-router/blob/master/docs/API.md#getindexroutelocation-callback).
 
 ##### `src/routes/Posts/index.js`
 ```js
@@ -502,27 +518,37 @@ import PostRoute from './routes/Post' // <-- import the route for a single post
 
 export default (store) => ({
   path: 'posts',
-  getIndexRoute (location, next) { // <-- lazy load the component for a list of posts
+  getIndexRoute (location, next) { // <-- lazy load the post list view component
     require.ensure([], (require) => {
       const PostsView = require('./components/PostsView').default
-      next(null, { component: PostsView })
+      next(null, { component: PostsView }) // <-- the view becomes the IndexRoute
     })
   },
   getComponent (nextState, cb) {
     require.ensure([], (require) => {
-      const PostsLayout = require('./layouts/PostsLayout').default // <-- use a layout
+      const PostsLayout = require('./layouts/PostsLayout').default // <-- import a layout
       const { default: reducer, rootSaga: saga } = require('./modules/posts')
 
       injectReducer(store, { key: 'postsApp', reducer })
       injectSaga({ name: 'postsApp', saga })
 
-      cb(null, PostsLayout)
+      cb(null, PostsLayout) // <-- update the route component to be a layout
     }, 'posts')
   },
   childRoutes: [
-    PostRoute(store) // <-- initialize the route for a single post
+    PostRoute(store) // <-- initialize the detail route
   ]
 })
+```
+
+### Create a posts layout
+Because we're nesting routes we need to use a layout. The [react-redux-starter-kit uses a layout](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js#L11) to display the home page and the counter app. A layout component simply wraps child routes. You can use a layout to include common components that are visible on all child routes. The [react-redux-starter-kit's core layout includes the global navigation](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/layouts/CoreLayout/CoreLayout.js#L8). Our posts layout will simply render the routes inside of an empty div. To counteract the default styles that ship with rect-redux-starter-kit we'll change the text alignment to make things easier to read.
+
+*Note:* We don't need to make any changes to the PostsView to make it work with the new layout. By returning the list view as the IndexRoute we tell react-router to show this view by default. Otherwise it will show a matching child route. In our case that means `/posts` will render the list view and `/posts/:slug` will render the detail view.
+
+```bash
+mkdir -p src/routes/Posts/layouts
+touch src/routes/Posts/layouts/PostsLayout.js
 ```
 
 ##### `src/routes/Posts/layouts/PostsLayout.js`
@@ -530,7 +556,9 @@ export default (store) => ({
 import React from 'react'
 
 const PostsLayout = ({ children }) => (
-  <div>{children}</div>
+  <div style={{textAlign: 'left'}}>
+    {children /* <-- index/child route components end up here */}
+  </div>
 )
 
 PostsLayout.propTypes = {
