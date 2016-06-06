@@ -49,7 +49,7 @@ A `saga` is just a function. The saga middleware runs it after the next action i
 
 Usually you configure your sagas to "stay alive" and keep listening for more actions, but you don't have to do it that way. 
 
-Here's an example of a saga that's only configured to run once. We'll see later that the whole point of your saga is to yield effects. When you use the `sagaMiddleware` your saga will be run when the next action is dispatched. It's important to note that your saga will only be run once. We'll see a little further down what watching for specific actions looks like.
+Here's an example of a saga that's only configured to run once. We'll see later that the whole point of your saga is to yield effects. When you use the `sagaMiddleware` your saga will be run when the next action is dispatched. It's important to note that usually your saga will only be run once. However it's common to use a watcher saga to keep responding to future actions. Although you don't have to use a watcher, it's the most common way you'll use the saga middelware. We'll see a little further down what watching for specific actions looks like.
 
 ```js
 // a saga is just a generator function that recieves an action
@@ -70,7 +70,7 @@ In a normal middleware like redux-thunk the asynchronous functionality gets bake
 
 What's important is that **your saga is just a function... a *generator* function.** 
 
-Here's an example of using the `takeEvery()` function from redux-saga to create a watcher for our saga. This ensures that our saga is only run for specific actions. It also ensures that your saga will run every time the action occurs. You should read up on [how `takeEvery()` works](http://yelouafi.github.io/redux-saga/docs/api/index.html#takeeverypattern-saga-args).
+Here's an example of using the `takeEvery()` function from redux-saga to create a watcher for our saga. You use takeEvery to create a watcher for your saga. This ensures that our saga is run when a specific action is dispatched. It also ensures that your saga will keep running to capture future actions. You should read up on [how `takeEvery()` works](http://yelouafi.github.io/redux-saga/docs/api/index.html#takeeverypattern-saga-args).
 
 ```js
 function * mySaga (action) {
@@ -264,16 +264,18 @@ We need to add some code to the `createStore.js` to integrate the sagaMiddleware
 // ... snippet from src/store/createStore.js
 
 // we're already importing our reducers
-import reducers from './reducers'
+import makeRootReducer from './reducers'
 
 // we also need to import our sagas
 // (we'll create the sagas.js file below)
-import rootSaga, { sagaMiddleware } from './sagas'
+import sagaMiddleware, { rootSaga } from './sagas'
 
 // this is the createStore function
 export default (initialState = {}, history) => {
-  // we add our sagaMiddleware where we apply all of our other middleware
-  let middleware = applyMiddleware(thunk, routerMiddleware(history), sagaMiddleware)
+  // ======================================================
+  // Middleware Configuration
+  // ======================================================
+  const middleware = [thunk, routerMiddleware(history), sagaMiddleware] // <-- add it to the list
 
   // ...
 
@@ -293,11 +295,11 @@ This shows the same alterations to `createStore.js` above with the `rootSaga` co
 ```js
 // ... alternative snippet from src/store/createStore.js
 
-import reducers from './reducers'
-import { sagaMiddleware } from './sagas'
+import makeRootReducer from './reducers'
+import sagaMiddleware from './sagas' // <-- don't import the root saga if you don't need to
 
 export default (initialState = {}, history) => {
-  let middleware = applyMiddleware(thunk, routerMiddleware(history), sagaMiddleware)
+  const middleware = [thunk, routerMiddleware(history), sagaMiddleware]
 
   // ...
 
@@ -373,24 +375,26 @@ export const createWatcher = (actionType, saga) => {
 export const watchActions = (sagas) => {
   const watchers = Object.keys(sagas)
     .map((type) => createWatcher(type, sagas[type])())
-
   return function * rootSaga () {
     yield watchers
   }
 }
 
-// run once when store is created
-export default function * rootSaga () {
+export function * rootSaga () {
   yield [
     // Add sync sagas here
   ]
 }
+
+export default sagaMiddleware
 ```
 
 Let's dig into this step-by-step.
 
 #### You can import and run app-wide sagas
-We're treating our sagas similarly to reducers. The [`src/store/reducers.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/store/reducers.js) file is where you'd import a reducer that all of your app would use. Otherwise you'd import reducers within your route using `indectReducer()`. If you look in the `reducers.js` file you'll see that app-wide reducers are called "sync reducers" because they are loaded synchronously as the app loads. "Async reducers" are loaded in a route, asynchronously, using webpack. We're going to copy that format and load our "sync sagas" in the `src/store/sagas.js` file and our "async sagas" in our route using `injectSaga()`. You might refer to these types of reducers and sagas as "app sagas" because they're loaded at the app level. As opposed to "route" sagas and reducers which are loaded at the route level.
+We're treating our sagas similarly to reducers. So we'll first look at how react-redux-starter-kit is managing reducers. The [`src/store/reducers.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/store/reducers.js) file is where you'd import a reducer that all of your app would use. Otherwise you'd import reducers within your route using `indectReducer()`. If you look in the `reducers.js` file you'll see that reducers used by your whole app are called "sync reducers." They are loaded synchronously as the app loads. For instance, the `router` reducer from react-router-redux is loaded as a sync reducer.
+
+"Async reducers" are loaded in a route, asynchronously, using webpack. We're going to copy that format and load our "sync sagas" in the `src/store/sagas.js` file and our "async sagas" in our route using `injectSaga()`. You might refer to these types of reducers and sagas as "app sagas" because they're loaded at the app level. As opposed to "route" sagas and reducers which are loaded at the route level.
 
 Here we're pretending that we have some sagas available that we'd like to import app-wide. We'll see later that it's more common to run your sagas when you enter a route. (You can see examples of these sagas in the [beginners tutorial](http://yelouafi.github.io/redux-saga/docs/introduction/BeginnerTutorial.html).)
 
@@ -456,7 +460,9 @@ export const injectSaga = ({ name, saga }) => {
 ```
 
 #### Watching for actions
-For reducers we're using the [`handleActions()`](https://github.com/acdlite/redux-actions#handleactionsreducermap-defaultstate) from redux-actions. For our sagas we'll want to do something similar.
+When you're building a module you'll want to register your saga to run when certain actions are dispatched. This is very similar to working with a reducer, where you want your reducer to handle certain actions. For reducers we're using [`handleActions()`](https://github.com/acdlite/redux-actions#handleactionsreducermap-defaultstate) from redux-actions. In order to get our sagas to watch for actions we're going to be doing something similar. Under the hood the `watchActions()` function mimics the redux-saga textbook example of creating a watcher saga. 
+
+(You can see examples of creating a watcher saga and exporting a rootSaga in the [beginners tutorial](http://yelouafi.github.io/redux-saga/docs/introduction/BeginnerTutorial.html).)
 
 ```js
 // ... example of using watchActions() inside a module
@@ -536,9 +542,11 @@ injectSaga({ name: 'todosApp', saga })
 ## About Modules
 Before we try to implement a saga in our sample app it's important to go over what a generic module looks like. A module is the redux version of a "model" from a traditional MVC app. Of course it's not *exactly* a model but you can see that all of the main pieces are there. Typically a model has getters and setters. In practice you will probably be organizing your module to look similar to something like an [Ember Data Model](http://emberjs.com/api/data/classes/DS.Model.html). 
 
-If you're following my anology, you use a selector in place of a getter. You should use selectors in the `mapStateToProps` function of a container. We use [reselect](https://github.com/reactjs/reselect) for this. It reads a value from the store. Technically you can store data in redux however you want and there are numerous ways to read data back. Regardless of how you structure your modules, using reselect to read from the store is highly recommended. The [documentation provided](https://github.com/reactjs/reselect) is top-notch. More on this below.
+If you're following my anology, you use a selector in place of a getter. You should use selectors in the `mapStateToProps` function of a container. A selector reads a value from the store. Technically you can store data in redux however you want and there are numerous ways to read data back. Usually you create a selector as a simple function like `const getAllTodos = (state) => state.todosApp.todos.data`.
 
-If a selector is a getter, then what is a setter? The short answer is "reducers" but that's not the whole story. Typically you don't call a reducer directly, instead you call an action which then gets dispatched to a reducer. You should dispatch actions from the `mapDispatchToProps` function in a container. In redux the simple act of updating an entity is turned into a complex maze of actions and sagas until it eventually reaches a reducer and updates the application state.
+There are some selectors that you want to memoize because they are expensive. We use [reselect](https://github.com/reactjs/reselect) for this. Regardless of how you structure your modules, using reselect to read from the store is highly recommended. The [documentation provided](https://github.com/reactjs/reselect) is top-notch. More on this below.
+
+If a selector is a getter, then what is a setter? The short answer is "reducers" but that's not the whole story. Typically you don't call a reducer directly, instead reducers handle actions as they are dispatched. You should dispatch actions from the `mapDispatchToProps` function in a container. In redux the simple act of updating an entity is turned into a series of actions and sagas until it eventually reaches a reducer and updates the application state.
 
 When you use something like Ember Data it is very easy to get and set a value on a model. But Ember Data itself does a tremendous amount of work to manage all of the underlying side effects without you needing to worry. In redux there's no magic going on and you have to manage those side effects yourself. That makes it slightly harder to get going but actually results in better performing code and completely removes framework-fighting (bending over backwards to get the framework to do what you want).
 
