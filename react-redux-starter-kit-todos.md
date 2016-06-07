@@ -96,7 +96,7 @@ If you're new to react-router they recommend that you:
 
 We're actually just going to be copying the [`Counter` route](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/Counter/index.js) from the boilerplate starter-kit app.
 
-## Create the files for the route
+### Create the files for the route
 We're going to eventually be storing our components, containers and modules using the [fractal project structure](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure) so we'll be creating `components/`, `containers/` and `modules/` folders inside our `routes/Todos/` folder. *Hint:* [`mkdir -p <path>`](http://unix.stackexchange.com/questions/49263/recursive-mkdir).
 
 ```bash
@@ -113,12 +113,14 @@ touch tests/routes/Todos/index.spec.js
 redux g route Todos
 ```
 
-## Todos Route
+### Todos Route
 We need to add some boilerplate code to our route file. You can see the way the router itself is configured by checking in [`src/routes/index.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js). By default your app is configured to allow for lazy-loading of routes. This is an important consideration for large apps and it's easy enough to support it from the very beginning. You don't have to know exactly how all of this magic works but you need to understand that it's important. Under the hood we're [using Webpack's code-splitting feature](https://webpack.github.io/docs/code-splitting.html) for performance.
 
 We need to add the following code to our new route.
 
 ##### `src/routes/Todos/index.js`
+(compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/Counter/index.js))
+
 ```js
 import { injectReducer } from '../../store/reducers'
 
@@ -246,12 +248,14 @@ export default (store) => ({ // <-- am I a route creator?
 })
 ```
 
-## Add the route to the router
+### Add the route to the router
 In a typical React-Redux app nothing is loaded by magic. Simply creating a route won't make it show up in the site. You can check out the parent router in [`src/routes/index.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js). You should be able to get a handle on what's happening in this file. One important consideration is how the Redux `store` is passed into each route.
 
 We need to import our route in the index route
 
 ##### `src/routes/index.js`
+(compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js))
+
 ```js
 // ... snippet from src/routes/index.js
 
@@ -276,7 +280,7 @@ export const createRoutes = (store) => ({
 
 3. If you notice, this file is also just a route. You can use layouts and `childRoutes` in any route that you create. The routes you define are imported by [`src/main.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/main.js). That's the file that does all the hard work of bootstrapping your app.
 
-## Add the route to the navigation
+### Add the route to the navigation
 You also need to manually manage your site's navigation. You can see how the default app manages the nav in [`src/components/Header/Header.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/components/Header/Header.js). Because our app uses react-router you don't have to import your route to create a link to it. You use react-router's [`Link` helper component](https://github.com/reactjs/react-router/blob/master/docs/API.md#link) instead. You may remember that we're using [react-router-redux](https://github.com/reactjs/react-router-redux) but that's an unimportant detail. In most cases you'll be working directly with react-router and only using react-router-redux for fancy things like time travel.
 
 Here we need to add a `Link` to our `/todos` route. What you put in `<Link to='/todos'` should match the `path: 'todos'` from your route. Here we're prefixing it with a `\` because it is "beneath" the home route. How you nest your routes determines how the URL path to the route is constructed.
@@ -288,6 +292,8 @@ Here we need to add a `Link` to our `/todos` route. What you put in `<Link to='/
 We need to add a link to our route to the header nav.
 
 ##### `src/components/Header/Header.js`
+(compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/components/Header/Header.js))
+
 ```jsx
 // ... snippet from src/components/Header/Header.js
 
@@ -327,7 +333,7 @@ touch tests/routes/Todos/components/TodosView.spec.js
 redux g component TodosView --path routes/Todos
 ```
 
-## Todos View
+### Todos View
 In the `src/routes/Todos/index.js` file we referenced the `TodosView`. A view is just a component. A view is specific to a route, meaning that a route's primary component is usually considered a view. The react-redux-starter-kit has a [blueprint for views](https://github.com/davezuko/react-redux-starter-kit/tree/master/blueprints/view) that you can use with `redux g view ViewName` but we're not going to use that because it can't add files inside of a route and we want to use the fractal project layout. By default the generator creates a `${ViewName}View.js` file in the `views/` folder. We've placed our view in the `components/` folder under our route.
 
 Why? Because a view is just a component (unless it's a container). It's not necessary to break views out into another folder because it's customary to name a view component with like `${RouteName}View`. This makes it unmistakable that the component in question is the view for your route. You are likely to see different developers have different preferences for where the view is located. One reason to keep it in the components folder is that you could reasonably have a view that is a container. In that case the `views/` folder would conceal the fact that the view was a container. Meanwhile, if you keep the view in either the `components/` or `containers/` folder a developer would have a hint about what the file contains before they even open it.
