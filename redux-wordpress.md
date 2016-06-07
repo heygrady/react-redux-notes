@@ -27,29 +27,69 @@ npm install --save \
 ```
 
 ### Install react-router-scroll
-This is seperate from the core use of the WordPress API with react-redux. Later in the tutorial we're going to be building out a few pages with a list-detail relationship. Annoyingly, when you scroll down the list and click through to the detail page it doesn't scroll to the top. There is an issue where [react-router won't scroll to the top on route change](https://github.com/reactjs/react-router/issues/2019). Thankfully, there's a plugin that manages [react-router scroll](https://github.com/taion/react-router-scroll) behavior.
+This is separate from the core use of the WordPress API with react-redux. Later in the tutorial we're going to be building out a few pages with a list-detail relationship. Annoyingly, when you scroll down the list and click through to the detail page it doesn't scroll to the top. There is an issue where [react-router won't scroll to the top on route change](https://github.com/reactjs/react-router/issues/2019). Thankfully, there's a plugin that manages [react-router scroll](https://github.com/taion/react-router-scroll) behavior.
+
+You may want to read up on best practices for [integrating middleware with react-router in react-redux-starter-kit](https://github.com/davezuko/react-redux-starter-kit/issues/849).
 
 ```bash
 npm install --save react-router-scroll
 ```
 
+##### `src/main.js`
+(compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/main.js))
+
+```jsx
+// ... router-specific snippets from main.js
+
+import { applyRouterMiddleware, useRouterHistory } from 'react-router' // <-- need to import applyRouterMiddleware
+import useScroll from 'react-router-scroll' // <-- import the scrolling middleware
+
+// ...
+
+let render = (routerKey = null) => {
+  const routes = require('./routes/index').default(store)
+
+  ReactDOM.render(
+    <AppContainer
+      {/* ... */}
+      render={applyRouterMiddleware(useScroll())} {/* <-- apply the scroll middleware to the router */}
+    />,
+    MOUNT_NODE
+  )
+}
+
+// ...
+```
+
 ##### `src/containers/AppContainer.js`
 (compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/containers/AppContainer.js))
+
 ```jsx
-// ... router snippet src/containers/AppContainer.js
+// ... snippet from src/containers/AppContainer.js
 
-// we need to apply the scroll behavior using react router's middleware
-import { applyRouterMiddleware, Router } from 'react-router'
+class AppContainer extends React.Component {
+  static propTypes = {
+    // ...
 
-// we need to import the middleware for the scroll behavior
-import useScroll from 'react-router-scroll'
+    render: PropTypes.func // <-- allow middleware to be injected
+  }
 
-// ...
+  render () {
+    // notice `render` is grabbed from `this.props`
+    const { history, routes, routerKey, render, store } = this.props
 
-// we apply the router middleware on render
-<Router history={history} children={routes} key={routerKey} render={applyRouterMiddleware(useScroll())} />
+    return (
+      <Provider store={store}>
+        <div style={{ height: '100%' }}>
+          {/* notice the `render={render}` for injecting middleware into the router */}
+          <Router history={history} children={routes} key={routerKey} render={render} />
+        </div>
+      </Provider>
+    )
+  }
+}
 
-// ...
+export default AppContainer
 ```
 
 ### Install redux-saga
@@ -167,7 +207,7 @@ We need to create a Posts module for managing our posts in the store. We'll fill
 - *Sagas* are for managing complex asynchronous tasks.
 - *Reducers* are for updating the store.
 
-##### `src/routes/Posts/modules/posts.js`
+##### `src/routes/Posts/modules/posts.js` (empty)
 ```js
 import { combineReducers } from 'redux'
 import { watchActions } from '../../../store/sagas'
@@ -191,7 +231,6 @@ export const rootSaga = watchActions({
 export default combineReducers({
   // combine all of your module's reducers
 })
-
 ```
 
 ## Adding a list component to our route
@@ -804,77 +843,19 @@ Normally it's easier to read your reducers from the bottom up.
   ```
 
 ### Normalizing Data
-The redux manual suggests using [normalizr](https://github.com/paularmstrong/normalizr) to flatten objects retrieved from an API. You can see normalizr in use in the [real-world example](https://github.com/reactjs/redux/blob/master/examples/real-world/middleware/api.js). For now we'll simply pull out the important bits from what's returned by the WordPress API and roughly shape them into a format we like. We're mimicking a similar structure to the [JSONAPI format](http://jsonapi.org/format/). You're welcome to store data however you please, using normalizr produces a similar structure. Using JSONAPI as a design inspiration solves some interesting problems with regard to storing objects retrieved from an API.
+The [redux manual suggests](http://redux.js.org/docs/advanced/AsyncActions.html#note-on-nested-entities) using [normalizr](https://github.com/paularmstrong/normalizr) to flatten objects retrieved from an API. You can see normalizr in use in the [real-world example](https://github.com/reactjs/redux/blob/master/examples/real-world/middleware/api.js). For now we'll simply pull out the important bits from what's returned by the WordPress API and roughly shape them into a format we like.
 
-You may want to read up on [using the WP-API to retrieve a post](http://v2.wp-api.org/reference/posts/). You you can also look at [the JSON that is returned](https://demo.wp-api.org/wp-json/wp/v2/posts/?_embed).
+We're roughly mimicking the [JSONAPI format](http://jsonapi.org/format/) which is different from the structure that normalizr creates. You're welcome to store data however you please. Using JSONAPI as a design inspiration solves some interesting problems with regard to storing objects retrieved from an API. Namely it demonstrates how to store entities separate from each other and keep their linkages. You may want to check out this gist of [how a JSONAPI inspired structure might look](https://gist.github.com/heygrady/62680ca4a79dcd540369037b83630187).
 
-```json
-// ... example json return by the WP-API
-[
-  {
-    "id": 1,
-    "date": "2016-05-10T07:25:45",
-    "date_gmt": "2016-05-10T07:25:45",
-    "guid": {
-      "rendered": "https://demo.wp-api.org/?p=1"
-    },
-    "modified": "2016-05-10T07:25:45",
-    "modified_gmt": "2016-05-10T07:25:45",
-    "slug": "hello-world",
-    "type": "post",
-    "link": "https://demo.wp-api.org/2016/05/10/hello-world/",
-    "title": {
-      "rendered": "Hello world!"
-    },
-    "content": {
-      "rendered": "<p>Welcome to <a href=\"https://wp-api.org/\">WP API Demo Sites</a>. This is your first post. Edit or delete it, then start blogging!</p>\n"
-    },
-    "excerpt": {
-      "rendered": "<p>Welcome to WP API Demo Sites. This is your first post. Edit or delete it, then start blogging!</p>\n"
-    },
-    "author": 1,
-    "featured_media": 0,
-    "comment_status": "open",
-    "ping_status": "open",
-    "sticky": false,
-    "format": "standard",
-    "categories": [
-      1
-    ],
-    "tags": [],
-    "_links": {
-      // ...
-    },
-    "_embedded": {
-      "author": [
-        {
-          "id": 1,
-          "name": "Human Made",
-          "url": "",
-          "description": "",
-          "link": "https://demo.wp-api.org/author/humanmade/",
-          "slug": "humanmade",
-          "avatar_urls": {
-            "24": "https://secure.gravatar.com/avatar/83888eb8aea456e4322577f96b4dbaab?s=24&d=mm&r=g",
-            "48": "https://secure.gravatar.com/avatar/83888eb8aea456e4322577f96b4dbaab?s=48&d=mm&r=g",
-            "96": "https://secure.gravatar.com/avatar/83888eb8aea456e4322577f96b4dbaab?s=96&d=mm&r=g"
-          },
-          "_links": {
-            // ...
-          }
-        }
-      ],
-      // ...
-    }
-  },
-  // ...
-]
-```
+For this demo we're not following best practice. Normally you'd want to store the authors and other related entities in a separate part of the store. To keep things simple we're storing the author in the post entity itself. This optimizes the store for easily selecting posts. A better practice for designing your state shape is explained in detail in the [normalizr docs](https://github.com/paularmstrong/normalizr#the-problem) and in the [redux manual](http://redux.js.org/docs/advanced/AsyncActions.html#designing-the-state-shape). 
+
+You may want to read up on [using the WP-API to retrieve a post](http://v2.wp-api.org/reference/posts/). You you can also look at [the JSON that is returned](https://demo.wp-api.org/wp-json/wp/v2/posts/?_embed). If you want to see a nicely formatted version check out this [gist of what the demo wp-api returns for posts](https://gist.github.com/heygrady/b59c8e1018e33acb7cdbd1e32e5d8a42).
 
 ```js
 // ... snippet from src/routes/Posts/modules/posts.js
 
 // processing a raw post
+// `p` is a "post" from the API
 const rawPost = (p) => {
 
   // pull out interesting values from each post
@@ -883,7 +864,7 @@ const rawPost = (p) => {
   // author is embedded
   const author = embedded.author.find(a => a.id === authorId)
 
-  // pass back a new object
+  // pass back a new post entity
   return {
     id, // <-- every entity needs an ID and a type
     type,
@@ -910,26 +891,33 @@ const rawPost = (p) => {
 }
 ```
 
-## Add a post detail route
-Work in progress...
-
+# Add a detail route
 By this point our list is rendering just fine but when you can't yet view a detail page. To do this we need to add a child route to the Posts route.
+
+## Post detail route
+Here's some commands for creating the necessary new files.
 
 ```bash
 mkdir -p src/routes/Posts/routes/Post/components
 mkdir -p src/routes/Posts/routes/Post/containers
+touch src/routes/Posts/routes/Post/components/Post.js
 touch src/routes/Posts/routes/Post/components/PostView.js
-touch src/routes/Posts/routes/Post/containers/ConnectedPostView.js
+touch src/routes/Posts/routes/Post/containers/PostViewContainer.js
 touch src/routes/Posts/routes/Post/index.js
 ```
 
-##### `src/routes/Posts/Post/index.js`
+### Post route
+The post route is very simple. It doesn't need to inject any additional reducers or sagas. When we need then we'll just add them to the existing posts module. You'll notice that the `path` looks like `path: ':slug'`. The colon before "slug" indicates that it is a param. The full path for this route is inherited by the parent. So, the final URL for a post detail page might look like "http://localhost:3000/posts/**some-unique-slug**". We'll be using the slug returned by WordPress itself. Later we'll see that, sadly, the WordPress API doesn't make it easy to locate a post by its slug.
+
+You may want to read more about [using paths in react-router](https://github.com/reactjs/react-router/blob/master/docs/guides/RouteMatching.md#path-syntax).
+
+##### `src/routes/Posts/routes/Post/index.js`
 ```js
 export default (store) => ({
-  path: ':slug',
+  path: ':slug', // <-- use a param in the path
   getComponent (nextState, cb) {
     require.ensure([], (require) => {
-      const PostView = require('./containers/ConnectedPostView').default
+      const PostView = require('./containers/PostViewContainer').default
 
       cb(null, PostView)
     }, 'post')
@@ -937,87 +925,18 @@ export default (store) => ({
 })
 ```
 
-##### `src/routes/Posts/routes/Post/containers/ConnectedPostView.js`
-```js
-import { connect } from 'react-redux'
-import PostView from '../components/PostView'
-import { getPostBySlug, makePostSelectors, fetchPost } from '../../../modules/posts'
+### Update posts route to include child route
+We need to add our detail route to the parent before we go into creating the view and other components. This is easier said than done. There are a few gotchas when setting up nested routes. The most confusing aspect is [how to display the childRoutes view](https://github.com/davezuko/react-redux-starter-kit/issues/808). We'll see that you have to use a layout when you have childRoutes and that takes [extra configuration](https://github.com/davezuko/react-redux-starter-kit/issues/797). We're going to have to make some big changes to our Posts route.
 
-const mapStateToProps = (state, ownProps) => {
-  const slug = ownProps.params.slug
-  const post = getPostBySlug(state, slug)
-  return {
-    slug,
-    makePostSelectors,
-    post,
-    hasPost: !!post,
-    isLoading: post && post.meta ? !!post.meta.loading : false
-  }
-}
-
-const mapDispatchToProps = (dispatch, ownProps) => {
-  const slug = ownProps.params.slug
-  return {
-    fetchPost: () => dispatch(fetchPost(slug))
-  }
-}
-const ConnectedPostView = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(PostView)
-
-export default ConnectedPostView
-```
-
-##### `src/routes/Posts/routes/Post/components/PostView.js`
-```jsx
-import React, { Component, PropTypes } from 'react'
-import Post from './Post'
-
-class PostView extends Component {
-  componentDidMount () {
-    const { hasPost, isLoading, fetchPost } = this.props
-    if (!hasPost && !isLoading) {
-      fetchPost()
-    }
-  }
-
-  render () {
-    const { post, isLoading, makePostSelectors } = this.props
-    return (
-      <div>
-        {isLoading || !post
-        ? <p>Loading...</p>
-        : <Post key={post.id} {...post} {...makePostSelectors(post)} />}
-      </div>
-    )
-  }
-}
-
-PostView.propTypes = {
-  post: PropTypes.shape({
-    id: PropTypes.number.isRequired
-  }),
-  makePostSelectors: PropTypes.func.isRequired,
-  hasPost: PropTypes.bool.isRequired,
-  isLoading: PropTypes.bool.isRequired,
-  fetchPost: PropTypes.func.isRequired,
-  slug: PropTypes.string.isRequired
-}
-
-export default PostView
-```
-
-## Update posts route to include child route
-This is easier said than done. There are a few gotchas when setting up nested routes. The most confusing aspect is [how to display the childRoutes view](https://github.com/davezuko/react-redux-starter-kit/issues/808). We'll see that you have to use a layout when you have childRoutes and that takes [extra configuration](https://github.com/davezuko/react-redux-starter-kit/issues/797). We're going to have to make some big changes to our Posts route.
+For reference this configuration is often referred to as a [master-detail route](https://github.com/reactjs/react-router/tree/master/examples/master-detail).
 
 We need to configure our Posts list view as the [`IndexRoute`](https://github.com/reactjs/react-router/blob/master/docs/API.md#indexroute-1) and our Posts detail route as the [`childRoute`](https://github.com/reactjs/react-router/blob/master/docs/API.md#childroutes). We could add additional child routes if we desired. A classic example would be an "add" route for adding new posts. For now we'll simply set up our list and detail routes.
 
 *Note:* Some examples show usage of [`getChildRoutes()`](https://github.com/reactjs/react-router/blob/master/docs/API.md#getchildrouteslocation-callback) to asynchronously load routes. **Don't use `getChildRoutes()` for code-splitting**. The react-redux-starter-kit has a note about [using `childRoutes` to load child routes synchonously](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js#L18). In short, asynchronous code-splitting should happen in [`getComponent()`](https://github.com/reactjs/react-router/blob/master/docs/API.md#getcomponentnextstate-callback).
 
-You can see that we're also using code-splitting to load the IndexRoute using [`getIndexRoute()`](https://github.com/reactjs/react-router/blob/master/docs/API.md#getindexroutelocation-callback).
+You can see that we're also using code-splitting to load the IndexRoute using [`getIndexRoute()`](https://github.com/reactjs/react-router/blob/master/docs/API.md#getindexroutelocation-callback). In general, code-splitting is for loading components, reducers and saga within routes. Routes themselves should be loaded synchronously. The reasoning might seem odd at first but your app needs to know about all of its routes to properly render a page, but it doesn't need to have all of the components handy for a route that no one has visited.
 
-##### `src/routes/Posts/index.js`
+##### `src/routes/Posts/index.js` (master-detail)
 ```js
 import { injectReducer } from '../../store/reducers'
 import { injectSaga } from '../../store/sagas'
@@ -1051,7 +970,30 @@ export default (store) => ({
 ### Create a posts layout
 Because we're nesting routes we need to use a layout. The [react-redux-starter-kit uses a layout](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js#L11) to display the home page and the counter app. A layout component simply wraps child routes. You can use a layout to include common components that are visible on all child routes. The [react-redux-starter-kit's core layout includes the global navigation](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/layouts/CoreLayout/CoreLayout.js#L8). Our posts layout will simply render the routes inside of an empty div. To counteract the default styles that ship with rect-redux-starter-kit we'll change the text alignment to make things easier to read.
 
+Our app will look something like this:
+
+```
+// viewing "/"
+CoreLayout
+  Header
+  HomeView
+
+// viewing "/posts"
+CoreLayout
+  Header
+  PostsLayout
+    PostsView
+
+// viewing "/posts/:slug"
+CoreLayout
+  Header
+  PostsLayout
+    PostView
+```
+
 *Note:* We don't need to make any changes to the PostsView to make it work with the new layout. By returning the list view as the IndexRoute we tell react-router to show this view by default. Otherwise it will show a matching child route. In our case that means `/posts` will render the list view and `/posts/:slug` will render the detail view.
+
+Here's some commands for creating the necessary new files.
 
 ```bash
 mkdir -p src/routes/Posts/layouts
@@ -1075,3 +1017,196 @@ PostsLayout.propTypes = {
 export default PostsLayout
 ```
 
+1. `PostsLayout` is just a regular react component.
+
+2. [`children`](https://facebook.github.io/react/tips/children-props-type.html) is the standard way to nest components in react. This is where the view for an index or child route will be rendered.
+
+## Post Detail View
+Now we're ready to start creating the components for our view. Because our route is using a param in the path we need to connect our view to the redux store. We're using [react-router-redux](https://github.com/reactjs/react-router-redux) in this app. The biggest different between using vanilla react-router and using it with react-router-redux is that the routers state is stored in redux. This actually makes it far easier to work with the router from within redux connected components. You may want to read up on [accessing the router's state in a container component](https://github.com/reactjs/react-router-redux#how-do-i-access-router-state-in-a-container-component).
+
+### Post view container
+The post detail is unique in that it's view is a connected component. There are other ways to arrange your app. You could read the router's state from any component you like. Feel to read the `:slug` param from within a container component other than the view.
+
+You'll notice that we're requesting additional items from our posts module that we created above. We'll be going into that in more detail below.
+
+##### `src/routes/Posts/routes/Post/containers/PostViewContainer.js`
+```js
+import { connect } from 'react-redux'
+import PostView from '../components/PostView'
+import { getPostBySlug, makePostSelectors, fetchPostBySlug } from '../../../modules/posts'
+
+const mapStateToProps = (state, ownProps) => {
+  const slug = ownProps.params.slug
+  const post = getPostBySlug(state, slug)
+  return {
+    slug,
+    makePostSelectors,
+    post,
+    hasPost: !!post,
+    isLoading: post && post.meta ? !!post.meta.loading : false
+  }
+}
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+  const slug = ownProps.params.slug
+  return {
+    fetchPost: () => dispatch(fetchPostBySlug(slug))
+  }
+}
+
+const PostViewContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(PostView)
+
+export default PostViewContainer
+```
+
+### Post view
+Here we can see the post detail view. Similar to the [PostList component](#srcroutespostscomponentspostlistjs) above, this post view needs to be a class component. When we navigate to a detail view from the list the post will have already been loaded from the API. However, if someone navigates directly to a post we'll need to fetch that post by it's slug. This is handled in the container above but it's triggered here.
+
+You'll also notice some logic in the `render` method for showing different things based on the application state. When it comes time to actually display the posts itself we use a `Post` component that we will define further below.
+
+##### `src/routes/Posts/routes/Post/components/PostView.js`
+```jsx
+import React, { Component, PropTypes } from 'react'
+import { Link } from 'react-router'
+import Post from './Post'
+
+class PostView extends Component {
+  componentDidMount () {
+    const { hasPost, isLoading, fetchPost } = this.props
+    if (!hasPost && !isLoading) {
+      fetchPost()
+    }
+  }
+
+  render () {
+    const { post, slug, hasPost, isLoading, makePostSelectors } = this.props
+
+    let template
+
+    if (!hasPost && !isLoading) {
+      template = (<p>Whoops! No post found for "{slug}."</p>)
+    } else if (isLoading) {
+      template = (<p>Loading...</p>)
+    } else {
+      template = <Post key={post.id} {...post} {...makePostSelectors(post)} />
+    }
+
+    return (
+      <div>
+        <Link to='/posts'>&lt; Back to all posts</Link>
+        {template}
+      </div>
+    )
+  }
+}
+
+PostView.propTypes = {
+  post: PropTypes.shape({
+    id: PropTypes.number.isRequired
+  }),
+  makePostSelectors: PropTypes.func.isRequired,
+  hasPost: PropTypes.bool.isRequired,
+  isLoading: PropTypes.bool.isRequired,
+  fetchPost: PropTypes.func.isRequired,
+  slug: PropTypes.string.isRequired
+}
+
+export default PostView
+```
+
+### Post
+Here we can see the component for the post itself. We've kep this extremely simple for demonstration purposes. From here you can feel free to add things like comments, links to author detail pages and anything else that you would like to retrieve from the WordPress API.
+
+Below you can see that the template looks very similar to [the `Post` component we created for the list view](#srcroutespostscomponentspostjs). The notable difference is using `content` instead of `except` for the HTML content. If you're feeling crafty you could make a component that could be used in either case. For now we'll stick with two separate but similar components. In a real application the `Post` template below will likely be far more robust than the one for the list view.
+
+##### `src/routes/Posts/routes/Post/components/Post.js`
+```jsx
+import React, { PropTypes } from 'react'
+
+const createMarkup = (htmlString) => ({ __html: htmlString })
+const formatDate = (dateString) => dateString
+
+const Post = ({ get }) => (
+  <div>
+    <h1>{get('title')}</h1>
+    <p>{formatDate(get('date'))} - {get('author').name}</p>
+    <div dangerouslySetInnerHTML={createMarkup(get('content'))} />
+  </div>
+)
+
+Post.propTypes = {
+  get: PropTypes.func.isRequired
+}
+
+export default Post
+```
+
+### Making it work
+At this point you should be able to view a detail page except the app will throw errors if you try to. You can define the necessary functions to get the app working if you'd like.
+
+```js
+// add this near the top of src/routes/Posts/modules/posts.js
+export const getPostBySlug = () => {}
+export const FETCH_POST_BY_SLUG = 'FETCH_POST_BY_SLUG'
+export const fetchPostBySlug = createAction(FETCH_POST_BY_SLUG)
+```
+
+## Fixing our module to work with posts by slug
+Now we're in the home stretch. We need to add several new things to our module to manage individual posts. We'll be going through all of the changes in detail below.
+
+For this demo we're going to resort to using [lodash.memoize](https://www.npmjs.com/package/lodash.memoize). You may wish to read up on [how memoize works](https://lodash.com/docs#memoize). We're using lodash.memoize instead of reselect because reselect doesn't
+
+At the start of this demo we [mentioned using reselect](#quick-install-react-redux-starter-kit) for creating memoized selectors. However, [creating a selector that can take arguments](https://github.com/reactjs/reselect/issues/100) is [really confusing](https://github.com/reactjs/reselect/issues/47). It's probably best to use reselect but currently the docs don't cover use cases where you need to pass additional arguments besides the state. This is a philosophical decision on the part of the reselect maintainers. The intention of reselect is to select and memoize values from the state. If a value isn't in the state, reselect makes life difficult. You might be tempted to simply use the [`defaultMemoize()`](https://github.com/reactjs/reselect#defaultmemoizefunc-equalitycheck--defaultequalitycheck) function from reselect directly, but it is also confusing. 
+
+You may notice that we're not adding any additional reducers. The WP-API doesn't offer [a direct way to fetch a post by its slug](https://github.com/WP-API/WP-API/issues/456). Instead, we have to perform a filter search, which returns an array of results. This is actually beneficial for our app because it allows us to use the same reducer for receiving multiple posts as well as receiving a single post by slug.
+
+You may notice that we're not using the demo URL below. The WP-API demo has a [peculiar CORS implementation](https://github.com/WP-API/WP-API/issues/2532) that doesn't work in some cases. For the purposes of this demo, we're using the URL of a demo server that we're hosting ourselves. We can't make any guarantees what that server will return in the future.
+
+Lastly you'll notice that our new saga has a peculiar name: `fetchPostBySlugSaga`. This was done to avoid a naming conflict with the `fetchPostBySlug` action creator. It may be wise to follow the redux manual and name the action creator `requestPostBySlug` and the saga `fetchPostBySlug`. Regardless of your naming scheme, you will inevitably run into issues where your actions creators and sagas have similar names because they represent two parts of the same action.
+
+```bash
+npm install --save lodash.memoize
+```
+
+##### `src/routes/Posts/modules/posts.js` (by slug)
+```js
+// ... new functions added to src/routes/Posts/modules/posts.js
+
+import memoize from 'lodash.memoize'
+
+// selectors
+export const getPostBySlug = memoize((state, slug) => {
+  return getAll(state).find(p => p.attributes.slug === slug)
+}, (state, slug) => {
+  return JSON.stringify(getAll(state)) + slug
+})
+
+// constants
+export const FETCH_POST_BY_SLUG = 'FETCH_POST_BY_SLUG'
+
+// actions creators
+export const fetchPostBySlug = createAction(FETCH_POST_BY_SLUG)
+
+// sagas
+const postBySlugUrl = 'http://54.200.88.22/wp-json/wp/v2/posts/?filter[name]='
+function *fetchPostBySlugSaga ({ payload }) {
+  yield put(setMeta('loading', true))
+  try {
+    const response = yield call(fetch, `${postBySlugUrl}${payload}&_embed`)
+    const json = yield call(() => response.json())
+    yield put(receivePosts(json))
+  } catch (error) {
+    yield put(setMeta('error', error))
+  }
+  yield put(setMeta('loading', false))
+}
+
+// combine sagas
+export const rootSaga = watchActions({
+  [FETCH_ALL_POSTS]: fetchAllPosts,
+  [FETCH_POST_BY_SLUG]: fetchPostBySlugSaga
+})
+```
