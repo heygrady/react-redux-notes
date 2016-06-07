@@ -384,7 +384,7 @@ export default PostList
 ### Post component
 Finally we need to create a component for displaying an individual item in the list of posts. We actually only need the `get()` selector that we made with `makePostSelectors(post)` in the list component above. The `get` selector simply returns attributes from a post by key. Simply for the sake of convenience we prefer to access these attributes using a selector function. You can see in the `PostList` above that the properties of a post are also copied onto the component. If you wanted to you could replace `get('slug')` with `this.props.attributes.slug`. All of this is an implementation detail of your app -- your module's interface is totally up to you and is not dictated by redux or the WordPress API. You may wish to implement something slightly different in your app.
 
-Because the WordPress API returns rendered HTML, we need to use [`dangerouslySetInnerHTML`](https://facebook.github.io/react/tips/dangerously-set-inner-html.html) to display the except of the post in our list. The awkward code is purposeful to ensure that developers think twice before rendering untrusted HTML strings.
+Because the WordPress API returns rendered HTML, we need to use [`dangerouslySetInnerHTML`](https://facebook.github.io/react/tips/dangerously-set-inner-html.html) to display the excerpt of the post in our list. The awkward code is purposeful to ensure that developers think twice before rendering untrusted HTML strings.
 
 ##### `src/routes/Posts/components/Post.js`
 ```jsx
@@ -418,7 +418,7 @@ export default Post
 
 2. `formatDate()` doesn't do anything. It is included here to show where you would put logic for formatting a date if your app required it.
 
-3. `get()` is a convenience function for reading an attribute from a post. We'll see how that works in more detail when we create our module for reading values from the redux store.
+3. `get()` is a convenience function for reading an attribute from a post. We'll see how that works in more detail when we create our module for reading values from the redux store. We'll see later how the posts object is constructed in a reducer.
 
 ## Fill in our module
 We're finally ready to fill in our module. At this point we should have a mostly functioning app that throws errors because our module is empty.
@@ -513,7 +513,7 @@ const rawPost = (p) => {
 }
 
 const postsData = handleActions({
-  [RECEIVE_ALL_POSTS]: (state, action) => (action.payload.map((p) => rawPost(p)))
+  [RECEIVE_ALL_POSTS]: (state, { payload }) => (payload.map((p) => rawPost(p)))
 })
 
 const posts = handleActions({
@@ -534,7 +534,7 @@ export default combineReducers({
 ```
 
 ### Adding selectors
-The bulk of what your containers will include from your module will be selectors. Selectors are in charge of returning portions of the state that are relavant to your app. Below you'll see all of the selectors we're using in the `PostListContainer`. We'll go through them.
+The bulk of what your containers will include from your module will be selectors. Selectors are in charge of returning portions of the state that are relevant to your app. Below you'll see all of the selectors we're using in the `PostListContainer`. We'll go through them.
 
 ```js
 // ... snippet from src/routes/Posts/modules/posts.js
@@ -597,7 +597,7 @@ export const makePostSelectors = (post) => ({
   ```
 
 ### Adding constants and actions
-Constants can make modules seem noisy but there a good way of keeping track of the "things your module does." Each action needs a constant. We'll see later that these constants are used by sagas and reducers for doing things when actions are dispatched.
+Constants can make modules seem noisy but they're a good way of keeping track of the "things your module does." Each action needs a constant. We'll see later that these constants are used by sagas and reducers for doing things when actions are dispatched.
 
 ```js
 // ... snippet from src/routes/Posts/modules/posts.js
@@ -635,6 +635,8 @@ const receivePosts = createAction(RECEIVE_ALL_POSTS)
 *Note:* At this point your app should be able to load without an errors. You will need to add sagas and reducers to make your app *do* something. But at this point is is able to render itself.
 
 ### Adding sagas
+For now we only need one saga for fetching a post from the server. You don't call a saga directly, instead a saga watches for specific actions. Below you can see that we watch list of actions and return the watchers as the `rootSaga`.
+
 ```js
 // ... snippet from src/routes/Posts/modules/posts.js
 
@@ -658,7 +660,57 @@ export const rootSaga = watchActions({
 })
 ```
 
+1. `postsUrl` is how you request a list of posts form the WordPress demo API. In a larger app you might have a utility function that constructs a proper URL for you. You may also wish to keep your URL in a config file to more easily control using different URLs for different environments.
+
+2. `*fetchAllPosts()` is a saga. It accepts an action as its argument. Sagas yield effects. In redux-saga you typically yield a `call`, meaning you want to call a function that returns a promise and resume the saga when the promise is fulfilled. You  might also yield a `put`, meaning you want to dispatch a action and resume the saga. You can see that we call `fetch` from isomorphic fetch and we call `response.json` to get the JSON from the response. You can also see that we put `setMeta` to toggle the loading state and to capture errors. We also put `recievePosts` with the payload from the AJAX call.
+
+  ```js
+  // a saga is a generator function
+  function *fetchAllPosts (action) {
+
+    // first we need to toggle "loading" to true
+    // this dispatches the setMeta action
+    yield put(setMeta('loading', true))
+
+    // you should wrap your fetch call in a try/catch
+    try {
+
+      // we get the response back after the fetch promise resolves
+      // we add _embed to the URL because we want to embed the author
+      const response = yield call(fetch, `${postsUrl}?_embed`)
+
+      // fetch returns a response object
+      // the json method returns a promise
+      // we use call to get the json after that promise resolves
+      // @see https://developer.mozilla.org/en-US/docs/Web/API/Body/json
+      const json = yield call(() => response.json())
+
+      // finally we dispatch a RECEIVE_ALL_POSTS action
+      // the posts are processed in a reducer
+      yield put(receivePosts(json))
+    } catch (error) {
+
+      // keep your errors so that you can do something with them in your app
+      yield put(setMeta('error', error))
+    }
+
+    // Lastly we need to toggle "loading" to false
+    yield put(setMeta('loading', false))
+  }
+  ```
+
+3. `rootSaga` is an arbitrary name. Typically you will want to export a single saga to make it easier to integrate in your route. The easiest way to map actions to sagas is using the `watchActions` function from `src/store/sagas.js`. It works very similarly to [`handleActions`](https://github.com/acdlite/redux-actions#handleactionsreducermap-defaultstate). You may want to read more about [how watchActions works](./redux-sagas-todos.md#watching-for-actions).
+
+  ```js
+  export const rootSaga = watchActions({
+    [FETCH_ALL_POSTS]: fetchAllPosts
+    // <-- you would add other saga here
+  })
+  ```
+
 ### Adding reducers
+Reducers are used to alter the state. You may want to read more about [how reducers work](http://redux.js.org/docs/basics/Reducers.html). We use [`handleActions`](https://github.com/acdlite/redux-actions#handleactionsreducermap-defaultstate) to make writing reducers much easier. 
+
 ```js
 // ... snippet from src/routes/Posts/modules/posts.js
 
@@ -673,7 +725,7 @@ const postsMeta = handleActions({
 // ...
 
 const postsData = handleActions({
-  [RECEIVE_ALL_POSTS]: (state, action) => (action.payload.map((p) => rawPost(p)))
+  [RECEIVE_ALL_POSTS]: (state, { payload }) => (payload.map((p) => rawPost(p)))
 })
 
 const posts = handleActions({
@@ -693,34 +745,163 @@ export default combineReducers({
 })
 ```
 
+Normally it's easier to read your reducers from the bottom up.
+
+1. [`combineReducers()`](http://redux.js.org/docs/api/combineReducers.html) joins all of your reducers together. Here we've only got a `posts` reducer that we want to inject. If we were to add a reducer for `authors` we'd want to add it here.
+
+  ```js
+  export default combineReducers({
+    posts // <-- receives state.postsApp.posts as "state"
+    // <-- you can put other reducers here
+  })
+  ```
+
+2. `posts` is the "lowest" reducer -- meaning the lowest down in the file. The lowest reducer must handle all actions that are passed to other reducers in the cascade. It's common practice to have reducers cascade into each other. You can see that the posts reducer branches to the `postsMeta` and `postsData` reducers. Each time you branch to another reducer you want to pass it a portion of the state.
+
+  ```js
+  // receives state.postsApp.posts as "state" 
+  const posts = handleActions({
+
+    // when the setMeta action is dispatched...
+    [SET_POSTS_META_KEY]: (state, action) => ({
+      ...state, // <-- spread the previous state into a new object
+      meta: postsMeta(state.meta, action) // <-- replace meta with the result of postsMeta
+    }),
+
+    // when the receivePosts action is dispatched...
+    [RECEIVE_ALL_POSTS]: (state, action) => ({
+      ...state, // <-- spread the previous state into a new object
+      data: postsData(state.data, action) // <-- replace data with the result of postsData
+    })
+  }, { data: [], meta: {} }) // <-- sets the initial state
+  ```
+
+3. `postsMeta` handles actions related to the meta data we store about posts. Here we can see that we handle a generic action that allows for setting the value for a key.
+
+  ```js
+  // recieves state.postsApp.posts.meta as "state" 
+  const postsMeta = handleActions({
+
+    // when the setMeta action is dispatched...
+    [SET_POSTS_META_KEY]: (state, { payload }) => ({
+      ...state, // <-- spread the previous state into a new object
+      [payload.key]: payload.value // <-- set the value for a key
+    })
+  })
+  ```
+
+4. `postsData` handles actions related to the posts themselves. You can read about [designing the state shape](http://redux.js.org/docs/advanced/AsyncActions.html#designing-the-state-shape) in a redux application.
+
+  ```js
+  // recieves state.postsApp.posts.data as "state" 
+  const postsData = handleActions({
+
+    // when the receivePosts action is dispatched...
+    // process each post in the payload with the rawPost function
+    // we'll explain that function below
+    [RECEIVE_ALL_POSTS]: (state, { payload }) => (payload.map((p) => rawPost(p)))
+  })
+  ```
+
 ### Normalizing Data
-see [normalizr](https://github.com/paularmstrong/normalizr)
+The redux manual suggests using [normalizr](https://github.com/paularmstrong/normalizr) to flatten objects retrieved from an API. You can see normalizr in use in the [real-world example](https://github.com/reactjs/redux/blob/master/examples/real-world/middleware/api.js). For now we'll simply pull out the important bits from what's returned by the WordPress API and roughly shape them into a format we like. We're mimicking a similar structure to the [JSONAPI format](http://jsonapi.org/format/). You're welcome to store data however you please, using normalizr produces a similar structure. Using JSONAPI as a design inspiration solves some interesting problems with regard to storing objects retrieved from an API.
+
+You may want to read up on [using the WP-API to retrieve a post](http://v2.wp-api.org/reference/posts/). You you can also look at [the JSON that is returned](https://demo.wp-api.org/wp-json/wp/v2/posts/?_embed).
+
+```json
+// ... example json return by the WP-API
+[
+  {
+    "id": 1,
+    "date": "2016-05-10T07:25:45",
+    "date_gmt": "2016-05-10T07:25:45",
+    "guid": {
+      "rendered": "https://demo.wp-api.org/?p=1"
+    },
+    "modified": "2016-05-10T07:25:45",
+    "modified_gmt": "2016-05-10T07:25:45",
+    "slug": "hello-world",
+    "type": "post",
+    "link": "https://demo.wp-api.org/2016/05/10/hello-world/",
+    "title": {
+      "rendered": "Hello world!"
+    },
+    "content": {
+      "rendered": "<p>Welcome to <a href=\"https://wp-api.org/\">WP API Demo Sites</a>. This is your first post. Edit or delete it, then start blogging!</p>\n"
+    },
+    "excerpt": {
+      "rendered": "<p>Welcome to WP API Demo Sites. This is your first post. Edit or delete it, then start blogging!</p>\n"
+    },
+    "author": 1,
+    "featured_media": 0,
+    "comment_status": "open",
+    "ping_status": "open",
+    "sticky": false,
+    "format": "standard",
+    "categories": [
+      1
+    ],
+    "tags": [],
+    "_links": {
+      // ...
+    },
+    "_embedded": {
+      "author": [
+        {
+          "id": 1,
+          "name": "Human Made",
+          "url": "",
+          "description": "",
+          "link": "https://demo.wp-api.org/author/humanmade/",
+          "slug": "humanmade",
+          "avatar_urls": {
+            "24": "https://secure.gravatar.com/avatar/83888eb8aea456e4322577f96b4dbaab?s=24&d=mm&r=g",
+            "48": "https://secure.gravatar.com/avatar/83888eb8aea456e4322577f96b4dbaab?s=48&d=mm&r=g",
+            "96": "https://secure.gravatar.com/avatar/83888eb8aea456e4322577f96b4dbaab?s=96&d=mm&r=g"
+          },
+          "_links": {
+            // ...
+          }
+        }
+      ],
+      // ...
+    }
+  },
+  // ...
+]
+```
 
 ```js
 // ... snippet from src/routes/Posts/modules/posts.js
+
 // processing a raw post
 const rawPost = (p) => {
+
+  // pull out interesting values from each post
   const { id, slug, date, type, title, author: authorId, excerpt, content, _links: links, _embedded: embedded } = p
+
+  // author is embedded
   const author = embedded.author.find(a => a.id === authorId)
 
+  // pass back a new object
   return {
-    id,
+    id, // <-- every entity needs an ID and a type
     type,
-    attributes: {
+    attributes: { // <-- keep attributes here
       slug,
       date,
       title: title.rendered,
-      author: {
+      author: { // <-- we're storing it here for simplicity
         id: author.id,
         name: author.name,
         slug: author.slug,
         avatarUrls: author.avatarUrls,
         meta: { links: author._links }
       },
-      content: content.rendered,
+      content: content.rendered, // <-- the api returns rendered html
       excerpt: excerpt.rendered
     },
-    meta: {
+    meta: { // <-- keep meta-data about an individual post here
       loading: false,
       saving: false,
       links
@@ -729,8 +910,10 @@ const rawPost = (p) => {
 }
 ```
 
-
 ## Add a post detail route
+Work in progress...
+
+By this point our list is rendering just fine but when you can't yet view a detail page. To do this we need to add a child route to the Posts route.
 
 ```bash
 mkdir -p src/routes/Posts/routes/Post/components
