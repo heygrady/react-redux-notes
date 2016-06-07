@@ -77,7 +77,11 @@ touch src/routes/Posts/index.js
 ### Create Posts route
 We need to create a Posts route. Below is the boilerplate for a route. Here we see a typical route that imports [`injectReducer()`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/store/reducers.js#L12) and [`injectSaga()`](./redux-sagas-todos.md#srcstoresagasjs) in order to register a module that will be used by connected components (containers). It also returns the default view for the route. We'll see later that we need to use a layout instead of a view in order to support the detail page, but we'll start with a view for now.
 
+You may want to read an [explanation of how this route works](./react-redux-starter-kit-todos.md#todos-route).
+
 ##### `src/routes/Posts/index.js`
+(compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/Counter/index.js))
+
 ```js
 import { injectReducer } from '../../store/reducers'
 import { injectSaga } from '../../store/sagas'
@@ -96,21 +100,6 @@ export default (store) => ({ // <-- export the route creator
     }, 'posts')
   }
 })
-```
-
-### Add route to navigation
-The starter-kit app comes with some example code to help get you started. We'll be leaving that in place and simply adding our code along side what's already there. We need to add a link to our new route in the header navigtion.
-
-##### `src/components/Header/Header.js`
-(compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/components/Header/Header.js))
-
-```jsx
-// ...
-    {' · '}
-    <Link to='/posts' activeClassName={classes.activeRoute}>
-      Posts
-    </Link>
-// ...
 ```
 
 ### Add Posts route to index
@@ -138,8 +127,23 @@ export const createRoutes = (store) => ({
 })
 ```
 
+### Add route to navigation
+The starter-kit app comes with some example code to help get you started. We'll be leaving that in place and simply adding our code along side what's already there. We need to add a link to our new route in the header navigtion.
+
+##### `src/components/Header/Header.js`
+(compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/components/Header/Header.js))
+
+```jsx
+// ...
+    {' · '}
+    <Link to='/posts' activeClassName={classes.activeRoute}>
+      Posts
+    </Link>
+// ...
+```
+
 ## Adding a view
-We need to create a Posts view for displaying our list.
+We need to create a Posts view for displaying our list. A view is just a functional component that includes all of the components used in your route. A view could be considred a route's main template. Here we're simply including the `PostListContainer`. Notice that the view doesn't connect to the store because it doesn't need anything from the store, that's handled in the container component.
 
 ##### `src/routes/Posts/components/PostsView.js`
 ```jsx
@@ -191,7 +195,7 @@ export default combineReducers({
 ```
 
 ## Adding a list component to our route
-Before we fill in our module we need to create the list component referenced in our view. We need to create a "connected" component to display our list because we want to manage the list of posts with redux.
+Before we fill in our module we need to create the list component referenced in our view. When you are building an app you should fill in the module for a container as you go. Meaning you don't really know what a module needs to go until you start connecting it to thing. Patterns will emerge as your component is used in more places. It typically very simple to refactor a module because it is only be used in a container component. We need to create a "connected" component to display our list because we want to manage the list of posts from the redux store.
 
 Here's some commands for creating the necessary new files.
 
@@ -205,7 +209,11 @@ touch src/routes/Posts/containers/PostListContainer.js
 ### Post list container
 In order to connect our list component to redux we need to create a container. We're going to be interfacing with the store in our container component. Later we'll see that we actually display the list of posts in a regular component that is wrapped by our container. This is a strict separation suggested by redux. Container components allow a developer to map logic from a module (which works with the redux store) to a component (which simply displays data).
 
-In redux, the `connect()` function provides functionality that ensures your component is re-rendered every time the state changes. Keeping components, containers and modules separated allows redux to efficiently keep your app up to date. In large applications this separation also allows developers to work on different parts of the code with minimal friction.
+As a rule of thumb, if you want to read from the store you need a container component.
+
+In react-redux, the [`connect()`](https://github.com/reactjs/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options) function provides functionality that ensures your component is re-rendered every time the state changes. Keeping components, containers and modules separated allows redux to efficiently keep your app up to date. In large applications this separation also allows developers to work on different parts of the code with minimal friction.
+
+Containers make it easier to refactor a module because it abstracts the logic for dealing with store from data needed to render the underlying component.
 
 We'll go through this in detail below.
 
@@ -239,13 +247,13 @@ const PostListContainer = connect(
 export default PostListContainer
 ```
 
-1. We need to import selectors and actions from our module. Selectors like `getAll()` and `isLoadingPosts()` allow you to easily read value from the redux state without knowing very much about how they're stored. That makes it easy to manage the state logic in the module and solely focus on hooking the module to the component. An action creator like `fetchAll()` can be used to dispatch an action that will update the state. We'll cover `makePostSelectors()` in more detail below.
+1. We need to import selectors and actions from our module. Selectors like `getAll()` and `isLoadingPosts()` allow you to easily read values from the redux state without knowing very much about how they're stored. That makes it easy to manage the state logic in the module. A container is solely focused on hooking the module to the component. An action creator like `fetchAll()` can be used to dispatch an action that will update the state. We'll cover `makePostSelectors()` in more detail below. *Selectors* and *action creators* form the "interface" to a module.
 
   ```js
   import { fetchAll, getAll, isLoadingPosts, makePostSelectors } from '../modules/posts'
   ```
 
-2. `mapStateToProps()` is a function that takes the current redux state and uses it to populate the props of a component. Our component is a list of posts. So we need to map the list of posts form the state a `posts` prop on the component. You can see that we're calling our selector functions with the redux state as the first argument. There are other ways to read the redux state but it's strongly recommended to only read from the state inside of a `mapStateToProps()` function.
+2. `mapStateToProps()` is a function that takes the current redux state and uses it to populate the props of a component. Our component is a list of posts. So we need to map the list of posts from the state to a `posts` prop on the component. You can see that we're calling our selector functions with the redux state as the first argument. There are other ways to read the redux state but it's strongly recommended to only read from the state inside of a `mapStateToProps()` function. This function is used by the `connect()` function and is called every time the state changes.
 
   ```js
   // this is the correct place to read form the redux store
@@ -255,7 +263,7 @@ export default PostListContainer
       posts, // <-- map the posts to the props of the list component
       makePostSelectors, // <-- pass a function as a prop if you want
 
-      isLoading: isLoadingPosts(state), // <-- read a boolean from the state
+      isLoading: isLoadingPosts(state), // <-- read a boolean from the state, rename a selector
 
       // create custom values based on the current state
       // here we're checking if there are any posts in the list
@@ -266,7 +274,7 @@ export default PostListContainer
 
   *Note:* You may want to read about [double exclaimation points](http://stackoverflow.com/a/9284677/5149458).
 
-3. `mapDispatchToProps()` is a function that allows you to create functions that dispatch actions and map them to props of a component. Our list component needs to request posts if they haven't been loaded yet. The `fetchAll()` action starts the AJAX request for loading posts from the server. When that completes the list component will reload and display the posts from the store.
+3. `mapDispatchToProps()` is a function that allows you to create functions that dispatch actions and map them to props of a component. This function is also used by the `connect()` function and is called every time the state changes. Our list component needs to request posts if they haven't been loaded yet. The `fetchAll()` action starts the AJAX request for loading posts from the server. When that completes, the list component will reload and display the posts from the store.
 
   ```js
   // this is the correct place to dispatch actions
@@ -279,7 +287,7 @@ export default PostListContainer
   ```
 
 ### Post list component
-Typicall you want to create components as a pure function, we'll see an example of that below. Because our list component needs to request posts if they aren't already loaded we need to create our component as a class. Using the class syntax makes [component lifecycle hooks](https://facebook.github.io/react/docs/component-specs.html#lifecycle-methods) available. Below you can see that we use the `componentDidMount()` hook to check for posts after the component has been added to the page. In a universal app you might want to pre-load posts, that's an implementation detail outside the scope of this tutorial.
+Typically you want to create a component as a pure function; we'll see an example of that further below. Because our list component needs to request posts if they aren't already loaded we need to create our component as a class instead. Using the class syntax makes [component lifecycle hooks](https://facebook.github.io/react/docs/component-specs.html#lifecycle-methods) available. Below you can see that we use the [`componentDidMount()`](https://facebook.github.io/react/docs/component-specs.html#mounting-componentdidmount) hook to check for posts after the component has been added to the page. In a universal app you might want to pre-load posts, that's an implementation detail outside the scope of this tutorial.
 
 You can read an overview of [best practices regarding components](./readme.md#components-should-be-simple-templates).
 
@@ -347,7 +355,7 @@ export default PostList
   }
   ```
 
-2. `render()` is should return a template. Here we're checking if the posts are loading or not. If they're loading we show a loading message. If they've already loaded we render a list of posts. You can use the spread operator to map props from an individual post to a Post component. We're using the `makePostSelectors(post)` function to create an object that provides selectors that make it convenient to read value from a post. We simply spread those onto the component as well.
+2. `render()` is should return a template. Here we're checking if the posts are loading or not. If they're loading we show a loading message. If they've already loaded we render a list of posts. You can use the spread operator to map props from an individual post to a Post component. We're using the `makePostSelectors(post)` function to create an object that provides selectors that make it convenient to read values from an individual post. We simply spread those onto the component as well. We'll see how this is used in the `Post` component below.
 
   ```js
   // this function fires every time a component is rendered
@@ -374,7 +382,9 @@ export default PostList
   ```
 
 ### Post component
-Finally we need to create a component for displaying an individual item in the list. We actually only need the `get()` selector that we made with `makePostSelectors(post)` in the list component above. Because the WordPress API returns rendered HTML, we need to use [`dangerouslySetInnerHTML`](https://facebook.github.io/react/tips/dangerously-set-inner-html.html) to display the except of the post in our list.
+Finally we need to create a component for displaying an individual item in the list of posts. We actually only need the `get()` selector that we made with `makePostSelectors(post)` in the list component above. The `get` selector simply returns attributes from a post by key. Simply for the sake of convenience we prefer to access these attributes using a selector function. You can see in the `PostList` above that the properties of a post are also copied onto the component. If you wanted to you could replace `get('slug')` with `this.props.attributes.slug`. All of this is an implementation detail of your app -- your module's interface is totally up to you and is not dictated by redux or the WordPress API. You may wish to implement something slightly different in your app.
+
+Because the WordPress API returns rendered HTML, we need to use [`dangerouslySetInnerHTML`](https://facebook.github.io/react/tips/dangerously-set-inner-html.html) to display the except of the post in our list. The awkward code is purposeful to ensure that developers think twice before rendering untrusted HTML strings.
 
 ##### `src/routes/Posts/components/Post.js`
 ```jsx
@@ -404,7 +414,7 @@ Post.propTypes = {
 export default Post
 ```
 
-1. `createMarkup()` is the recommended way to ensure that you're writing markup that you trust. There is a potential for cross-site scripting attacks when rendering arbitrary HTML string from untrusted sources.
+1. `createMarkup()` is the recommended way to ensure that you're writing markup that you trust. There is a potential for [cross-site scripting](https://en.wikipedia.org/wiki/Cross-site_scripting) attacks when rendering arbitrary HTML string from untrusted sources.
 
 2. `formatDate()` doesn't do anything. It is included here to show where you would put logic for formatting a date if your app required it.
 
@@ -412,6 +422,8 @@ export default Post
 
 ## Fill in our module
 We're finally ready to fill in our module. At this point we should have a mostly functioning app that throws errors because our module is empty.
+
+If you've been following along closely above you might have some ideas of the kinds of things that our module needs to do. We already know the selectors and actions that our container component needs. We'll start with the `fetchAll`, `getAll`, `isLoadingPosts`, `makePostSelectors` functions and then fill in the sagas and reducers needed to make these functions work.
 
 We'll go through this in detail below.
 
@@ -522,6 +534,8 @@ export default combineReducers({
 ```
 
 ### Adding selectors
+The bulk of what your containers will include from your module will be selectors. Selectors are in charge of returning portions of the state that are relavant to your app. Below you'll see all of the selectors we're using in the `PostListContainer`. We'll go through them.
+
 ```js
 // ... snippet from src/routes/Posts/modules/posts.js
 
@@ -532,16 +546,59 @@ export const getMeta = (state) => (getAppState(state).posts.meta || {})
 export const isLoadingPosts = (state) => !!getMeta(state).loading
 
 export const makePostSelectors = (post) => ({
-  id: post.id,
-  type: post.type,
-  meta: post.meta,
-  ...post.attributes,
   get: (key) => post.attributes[key],
   getAttributes: () => post.attributes
 })
 ```
 
+1. `getAppState(state)` is a convenience selector for grabbing the part of the global state that pertains to this app. In a redux app all of the state is stored in the same place. Commonly each route has a part of the state that it manages. In the Posts route we created above we injected our reducer as `postsApp`. In a container component `state` contains the whole state, not just the `postsApp` portion. This is a great convenience because it allows your modules to work with the state in unrestricted ways. It's customary to make a selector to make it easier to grab the app-specific portion of the state that your module is concerned with.
+
+  ```js
+  // convenient way to grab the state related to the posts app
+  export const getAppState = (state) => state.postsApp
+  ```
+
+  ```js
+  // in a container
+  import { getAppState } from '../modules/posts'
+
+  // presume state looks like { postsApp: { ...posts }, ...otherStuff }
+  const mapStateToProps = (state) => {
+    return {
+      app: getAppState(state) // --> { ...posts }
+    }
+  }
+  ```
+
+2. `getAll(state)` returns only the posts. We'll see later when we implement the reducer that we're storing the list of posts as an array under `posts.data`. You can see here that we use the `getAppState(state)` selector to grab our posts app. This makes it easy to refactor the app later and "move the app" to a different part of the store with minimal changes. You can also see that we're returning an empty array by default. This prevents errors from happening in components when `posts.data` is undefined.
+
+  ```js
+  export const getAll = (state) => (getAppState(state).posts.data || [])
+  ```
+
+3. `isLoadingPosts(state)` returns a boolean if the `posts.meta.loading` prop is set to true. We'll see later that this value is managed by our saga for fetching posts. You can see here that we use the `getMeta(state)` selecector to pull out the `posts.meta` object before trying to read the `loading` prop. It's common to chain selectors like this. If you find yourself creating "computed selectors" that combine multiple values into dependent values you should use reselect.
+
+  ```js
+  export const isLoadingPosts = (state) => !!getMeta(state).loading
+  ```
+
+4. `makePostSelectors(post)` returns an object containing selector functions bound to an individual post. This is used in cases where a post object is known and you want to make cinvenient selectors for working with it. We're showing here just two functions, `get(attributeName)` and `getAttributes()` for working with attributes. We'll see much later that it's a good place to put functions for reading meta-data about a given post as well, like `isLoading`.
+
+  ```js
+  // this function expects a single post, not the entire state
+  export const makePostSelectors = (post) => ({
+
+    // this makes it easy to get values from a post
+    get: (key) => post.attributes[key],
+    getAttributes: () => post.attributes
+
+    // <-- you can add other post-specific selectors here as your app grows
+  })
+  ```
+
 ### Adding constants and actions
+Constants can make modules seem noisy but there a good way of keeping track of the "things your module does." Each action needs a constant. We'll see later that these constants are used by sagas and reducers for doing things when actions are dispatched.
+
 ```js
 // ... snippet from src/routes/Posts/modules/posts.js
 
@@ -555,6 +612,27 @@ export const fetchAll = createAction(FETCH_ALL_POSTS)
 const setMeta = createAction(SET_POSTS_META_KEY, (key, value) => ({ key, value }))
 const receivePosts = createAction(RECEIVE_ALL_POSTS)
 ```
+
+1. We create a constant for each action. Some of the constants aren't used outside this module so we didn't export them. It's important to know that constants need to be unique across your entire app... even if you don't export them. All actions are handled by redux before being sent to your reducers and sagas. This means that your actions could overlap with actions from another part of your app. This is good news and a major advantage of redux if that's what you want. It's also a common bug that's difficult to track down. This is why many classic Flux apps recommended keeping all constants in the same file. While constants seem ugly, redundant and annoying, they're a key part of what makes redux applications so predictable and easy to refactor.
+
+2. We use [`createAction`](https://github.com/acdlite/redux-actions#createactiontype-payloadcreator--identity-metacreator) to create action creators. This makes our actions much more predicable as every action looks like this: `{ type, payload }`. Usually you can just use createAction with a constant and it will create a payload from the argument that is passed. If you need to accept multiple arguments or construct a specific payload you can provide a payloadCreator function.
+
+  ```js
+  // use it like fetchAll()
+  // returns an object like { type: 'FETCH_ALL_POSTS', payload }
+  export const fetchAll = createAction(FETCH_ALL_POSTS)
+
+  // use it like setMeta('loading', true)
+  // returns an object like { type: 'SET_POSTS_META_KEY', payload: { key: 'loading', value: true } }
+  const setMeta = createAction(SET_POSTS_META_KEY, (key, value) => ({ key, value }))
+
+
+  // use it like receivePosts(posts)
+  // returns an object like { type: 'RECEIVE_ALL_POSTS', payload: [ ...posts ] }
+  const receivePosts = createAction(RECEIVE_ALL_POSTS)
+  ```
+
+*Note:* At this point your app should be able to load without an errors. You will need to add sagas and reducers to make your app *do* something. But at this point is is able to render itself.
 
 ### Adding sagas
 ```js
