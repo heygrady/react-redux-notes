@@ -1316,9 +1316,10 @@ export const fetchPostBySlug = createAction(FETCH_POST_BY_SLUG)
 ```
 
 ## Fixing our module to work with posts by slug
+
 Now we're in the home stretch. We need to add several new things to our module to manage individual posts. We'll be going through all of the changes in detail below.
 
-For this demo we're going to resort to using [lodash.memoize](https://www.npmjs.com/package/lodash.memoize). You may wish to read up on [how memoize works](https://lodash.com/docs#memoize). We're using lodash.memoize instead of reselect because reselect doesn't
+For this demo we're going to resort to using [lodash.memoize](https://www.npmjs.com/package/lodash.memoize). You may wish to read up on [how memoize works](https://lodash.com/docs#memoize). We're using lodash.memoize in addition to reselect because of how reselect works.
 
 At the start of this demo we [mentioned using reselect](#quick-install-react-redux-starter-kit) for creating memoized selectors. However, [creating a selector that can take arguments](https://github.com/reactjs/reselect/issues/100) is [really confusing](https://github.com/reactjs/reselect/issues/47). It's probably best to use reselect but currently the docs don't cover use cases where you need to pass additional arguments besides the state. This is a philosophical decision on the part of the reselect maintainers. The intention of reselect is to select and memoize values from the state. If a value isn't in the state, reselect makes life difficult. You might be tempted to simply use the [`defaultMemoize()`](https://github.com/reactjs/reselect#defaultmemoizefunc-equalitycheck--defaultequalitycheck) function from reselect directly, but it is also confusing.
 
@@ -1336,14 +1337,16 @@ npm install --save lodash.memoize
 ```js
 // ... new functions added to src/routes/Posts/modules/posts.js
 
+import { createSelector } from 'reselect'
 import memoize from 'lodash.memoize'
 
 // selectors
-export const getPostBySlug = memoize((state, slug) => {
-  return getAll(state).find(p => p.attributes.slug === slug)
-}, (state, slug) => {
-  return JSON.stringify(getAll(state)) + slug
-})
+export const getPostBySlug = createSelector(
+  [getAll],
+  (posts) => memoize((slug) => {
+    return posts.find(p => p.attributes.slug === slug)
+  })
+)
 
 // constants
 export const FETCH_POST_BY_SLUG = 'FETCH_POST_BY_SLUG'
@@ -1371,3 +1374,108 @@ export const rootSaga = watchActions({
   [FETCH_POST_BY_SLUG]: fetchPostBySlugSaga
 })
 ```
+
+1. `getPostBySlug(state)(slug)` is a curried function. You might like [reading up on curried functions](https://www.sitepoint.com/currying-in-functional-javascript/). What we're doing is giving into the pressure of createSelector to only work directly with the state. Using `createSelector(dependentSelectors, computedSelector)` creates a function that only accepts the state and only passes the results of the `dependentSelectors` to the `computedSelector`. If you dig deeper into what createSelector is doing it becomes apparent.
+
+  Here's an example of our selector that doesn't memoize anything. You might like to [experiment with this example](https://repl.it/CZ8G).
+
+  ```js
+  // ... psuedo code that does what createSelector does
+
+  // this code doesn't memoize anything
+
+  // we need to pass state into our selector
+  export const getPostBySlug = (state) => {
+    // our computed selector can depend on a list of other selectors
+    const dependentSelectors = [getAll]
+
+    // it's good practice to memoize a computed selector
+    // because it's expensive to compute things over and over
+    // especially if the result won't change until the state does
+    const computedSelector = (posts) => (slug) =>
+      posts.find(p => p.attributes.slug === slug)
+
+    // did you notice?
+    // we're being tricky and returning a function from our computed selector
+    return computedSelector(...dependentSelectors.map(s => s(state)))
+  }
+  ```
+
+  Here's an example where when memoize everything ourselves. You might like to [experiment with this example](https://repl.it/CZ8E/2).
+
+  ```js
+  // ... psuedo code that memoizes stuff
+
+  // this code *does* memoize things
+
+  import memoize from 'lodash.memoize'
+
+  // this is pretty much what createSelector does
+  // @see https://github.com/reactjs/reselect/blob/master/src/index.js
+  const createSelector2 = (dependentSelectors = [], computedSelector) => {
+
+    // we can stash these variables in the function scope
+    // because everything in a selector depends on the state
+    // this effectively memoizes our selector
+    let prevState
+    let prevSelectedValues
+    let result
+
+    // we're "creating" a selector
+    // so we need to return a function
+    // a selector is a function
+    return (state) => {
+
+      // we can easily track if the state has changed
+      if (state !== prevState) {
+        const selectedValues = dependentSelectors.map(s => s(state))
+
+        // we can even check if our dependentSelectors have changed
+        const hasChanged = prevSelectedValues !== undefined
+          && selectedValues.some((v, i) => v !== prevSelectedValues[i])
+
+        // we only need to re-compute our selector when the state changes
+        if (hasChanged || prevSelectedValues === undefined) {
+
+          // memoize the result by stashing it in the parent scope
+          result = computedSelector(...selectedValues)
+        }
+
+        // stash the current state and selected values in the parent scope
+        prevState = state
+        prevSelectedValues = selectedValues
+      }
+
+      return result
+    }
+  }
+
+  // here we're getting extra tricky
+  // createSelector2 memoized our selector based on the state
+  // but we need to also memoize based on the slug
+  // to do this we need to return a function from our selector
+  // this second function takes slug as an argument
+  // we need to memoize it ourselves
+  // this makes getPostBySlug a "curried" function
+  // you'd use it like this: getPostBySlug(state)(slug)
+  export const getPostBySlug = createSelector2(
+    [getAll],
+    (posts) => memoize((slug) => {
+      return posts.find(p => p.attributes.slug === slug)
+    })
+  )
+  ```
+
+  Finally, here's the version using createSelector.
+
+  ```js
+  import { createSelector } from 'reselect'
+  import memoize from 'lodash.memoize'
+
+  export const getPostBySlug = createSelector(
+    [getAll],
+    (posts) => memoize((slug) => {
+      return posts.find(p => p.attributes.slug === slug)
+    })
+  )
+  ```
