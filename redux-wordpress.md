@@ -105,7 +105,7 @@ export default AppContainer
 
 As discussed in our [redux-saga note](./redux-sagas-todos.md) we will need to add a [`src/store/sagas.js`](./redux-sagas-todos.md#srcstoresagasjs) file and use it in [`src/store/createStore.js`](redux-sagas-todos.md#srcstorecreatestorejs).
 
-Please follow those links to configure redux-saga. In the previous tutorial sagas as discussed in great detail.
+Please follow those links to configure redux-saga. In the previous tutorial sagas are discussed in great detail.
 
 # What are we building?
 
