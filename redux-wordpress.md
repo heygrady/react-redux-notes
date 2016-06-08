@@ -1,18 +1,26 @@
 # Using WordPress with react-redux
-We can use the [wp-api](http://v2.wp-api.org/) plugin to fetch WordPress data over an API. This allows you build a react-redux application as you normally would and use WordPress primarily as a CMS -- meaning you don't have to use WordPress or PHP as your rendering engine. In our case we intend to use react-redux as our rendering engine. We're only going to be using WordPress as a data store and an admin tool. Of course this approach means that your frontend site won't look very much like a WordPress theme. If you really love WordPress themes, then this probably isn't for you. If, however, you prefer to build your website using state of the art frontend best practices... keep reading.
 
-Of course this approach doesn't require using react-redux. You could do something similar with Ember or Angular or any other frontend app.
+We can use the [WP-API WordPress plugin](http://v2.wp-api.org/) to fetch WordPress data over an API. This allows you build a react-redux application as you against the API &mdash; meaning you don't have to use WordPress or PHP as your rendering engine. In our case we intend to use react-redux as our rendering engine. We're only going to be using WordPress as a data store and an admin tool. Of course, this approach means that your frontend site won't necessarily look very much like a WordPress theme. If you really love WordPress themes, then this probably isn't for you. If, however, you prefer to build your website using [state-of-the-art frontend best practices](https://medium.com/javascript-and-opinions/state-of-the-art-javascript-in-2016-ab67fc68eb0b)... keep reading.
 
-This is written assuming you've familiarized yourself with [the basic todos app](http://redux.js.org/docs/basics/index.html), [how it looks in react-redux-starter-kit](./react-redux-starter-kit-todos.md) and [using it with redux-saga](./redux-sagas-todos.md).
+Building a fronted app against the API doesn't require using react-redux. You could use use the WP-API with an Ember, Angular or any other frontend framework.
+
+This is written assuming you've familiarized yourself with [the todos app](http://redux.js.org/docs/basics/index.html) from the redux manual, [how it looks in react-redux-starter-kit](./react-redux-starter-kit-todos.md) and [using it with redux-saga](./redux-sagas-todos.md). You might also like to read the note I made as I was [first learning react-redux-starter-kit](https://github.com/heygrady/react-redux-notes).
 
 ### WordPress has a demo API
-You can use [the demo wp-api](http://demo.wp-api.org/wp-json/wp/v2/) for this tutorial. It's the same as what you'd get if you installed the API on your own WordPress installation. For the purposes of this tutorial we'll be ignoring the authentication step. This may be addressed in a future tutorial.
 
+You can use [the demo wp-api](http://demo.wp-api.org/wp-json/wp/v2/) for this tutorial. It's the same as what you'd get if you installed the API on your own WordPress installation. Much of the API can be used without any authentication. For the purposes of this tutorial we'll be ignoring authentication altogether. This may be addressed in a future tutorial.
+
+You may like to read the [WP-API documentation](http://v2.wp-api.org/).
 
 ### Quick install react-redux-starter-kit
-Use [redux-cli](https://github.com/SpencerCDixon/redux-cli) to create a new redux app and install a few useful modules that don't ship with the starter kit. We recommend using [redux-actions](https://github.com/acdlite/redux-actions) for actions and reducers, [redux-saga](https://github.com/yelouafi/redux-saga) for asynchronous side effects, and [reselect](https://github.com/reactjs/reselect) for making complex memoized selectors. We use [isomorphic-fetch](https://github.com/matthew-andrews/isomorphic-fetch) for AJAX calls.
 
-We won't be using [node-uuid](https://github.com/broofa/node-uuid) for this example project but it's useful for creating globally unique identifiers.
+For this tutorial we are going to rely on a starter kit to set up the initial application. We've been enjoying [react-redux-starter-kit](https://github.com/davezuko/react-redux-starter-kit) and the redux-cli tool.
+
+Use [redux-cli](https://github.com/SpencerCDixon/redux-cli) to create a new redux app. We also need to install a few useful modules that don't ship with the starter kit by default. We recommend using [redux-actions](https://github.com/acdlite/redux-actions) for actions and reducers, [redux-saga](https://github.com/yelouafi/redux-saga) for asynchronous side effects, and [reselect](https://github.com/reactjs/reselect) for making complex memoized selectors. We use [isomorphic-fetch](https://github.com/matthew-andrews/isomorphic-fetch) for AJAX calls.
+
+We won't be using [node-uuid](https://github.com/broofa/node-uuid) for this example project but it's useful for creating globally unique identifiers. You'll need this in your app if allow users to create new things. You may like reviewing an [example of using uuid in a redux module](./react-redux-starter-kit-todos.md#srcroutestodosmodulestodosjs).
+
+Here's some commands for initializing a redux app and installing some commonly used modules.
 
 ```bash
 redux create posts-app
@@ -27,18 +35,20 @@ npm install --save \
 ```
 
 ### Install react-router-scroll
-This is separate from the core use of the WordPress API with react-redux. Later in the tutorial we're going to be building out a few pages with a list-detail relationship. Annoyingly, when you scroll down the list and click through to the detail page it doesn't scroll to the top. There is an issue where [react-router won't scroll to the top on route change](https://github.com/reactjs/react-router/issues/2019). Thankfully, there's a plugin that manages [react-router scroll](https://github.com/taion/react-router-scroll) behavior.
+
+This is separate from the core use of the WordPress API with react-redux. Later in the tutorial we're going to be building out a few pages with a [master-detail](https://react.rocks/tag/MasterDetail) relationship. Annoyingly, when you scroll down the list and click through to the detail page it stays scrolled to the bottom of the page. There is an issue where [react-router won't scroll to the top on a route change](https://github.com/reactjs/react-router/issues/2019). Thankfully, there's a plugin that manages [react-router scroll](https://github.com/taion/react-router-scroll) behavior. Guess what it's called?
 
 You may want to read up on best practices for [integrating middleware with react-router in react-redux-starter-kit](https://github.com/davezuko/react-redux-starter-kit/issues/849).
+
+We're going to need to install an additional NPM module and alter a few files that ship with react-redux-starter-kit. Because of [recent changes to `src/main.js`](https://github.com/davezuko/react-redux-starter-kit/commit/cf2f7f2bfcaa1cd9bb6fdccd509a99eb10498789) we need to make changes in two files.
 
 ```bash
 npm install --save react-router-scroll
 ```
 
-##### `src/main.js`
-(compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/main.js))
+###### `src/main.js` (compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/main.js))
 
-```jsx
+```js
 // ... router-specific snippets from main.js
 
 import { applyRouterMiddleware, useRouterHistory } from 'react-router' // <-- need to import applyRouterMiddleware
@@ -61,10 +71,9 @@ let render = (routerKey = null) => {
 // ...
 ```
 
-##### `src/containers/AppContainer.js`
-(compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/containers/AppContainer.js))
+###### `src/containers/AppContainer.js` (compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/containers/AppContainer.js))
 
-```jsx
+```js
 // ... snippet from src/containers/AppContainer.js
 
 class AppContainer extends React.Component {
@@ -93,16 +102,24 @@ export default AppContainer
 ```
 
 ### Install redux-saga
-As discussed in our redux-saga note we need to add a [`src/store/sagas.js`](./redux-sagas-todos.md#srcstoresagasjs) file and use it in [`src/store/createStore.js`](redux-sagas-todos.md#srcstorecreatestorejs). Please follow those links to configure redux-saga.
 
+As discussed in our [redux-saga note](./redux-sagas-todos.md) we will need to add a [`src/store/sagas.js`](./redux-sagas-todos.md#srcstoresagasjs) file and use it in [`src/store/createStore.js`](redux-sagas-todos.md#srcstorecreatestorejs).
+
+Please follow those links to configure redux-saga. In the previous tutorial sagas as discussed in great detail.
 
 # What are we building?
-We're going to build the simplest example with the WordPress API to illustrate how to read data and display it in a react-redux app. We're going to read [the posts API](http://v2.wp-api.org/reference/posts/) and show examples of using the API to fetch posts by ID and by slug. We're also going to be adding two routes to our app. A route that lists out posts and a route that shows a post detail page. We'll set them up as nested routes. Finally we'll use the store to persist our requests.
+
+We're going to build a simple example with the WordPress API to illustrate how to read a list of posts and display them in a react-redux app. We're going to fetch data using [the posts API](http://v2.wp-api.org/reference/posts/) and show examples of using the API to fetch posts by slug. We're also going to be adding two routes to our app. One route that displays our list of posts and another that shows a post detail page. We'll set them up as nested routes. We'll also go into detail on how to create a module for storing and retrieving data from the redux store.
 
 A future addition to this tutorial might cover things like pagination and preloading the posts in a universal app.
 
+We're going to start with the interface first and then work our way back to our redux module where we'll actually work with the API.
+
 ## Adding a route to our starter-kit app
-Let's add a route that will show all of the posts returned by the API. You can read more about [creating routes in the previous tutorial](./react-redux-starter-kit-todos.md#create-a-new-route).
+
+Let's add a route that will show a list of the posts returned by the API.
+
+You can read more about [creating routes in the previous tutorial](./react-redux-starter-kit-todos.md#create-a-new-route).
 
 Here's some commands for creating the necessary new files.
 
@@ -115,12 +132,14 @@ touch src/routes/Posts/index.js
 ```
 
 ### Create Posts route
-We need to create a Posts route. Below is the boilerplate for a route. Here we see a typical route that imports [`injectReducer()`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/store/reducers.js#L12) and [`injectSaga()`](./redux-sagas-todos.md#srcstoresagasjs) in order to register a module that will be used by connected components (containers). It also returns the default view for the route. We'll see later that we need to use a layout instead of a view in order to support the detail page, but we'll start with a view for now.
+
+We need to create a Posts route. Below is the boilerplate for a route. Here we see a typical route that imports [`injectReducer()`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/store/reducers.js#L12) and [`injectSaga()`](./redux-sagas-todos.md#srcstoresagasjs). We use those functions to inject the root reducer and root sage from the route's module.
+
+It also returns the default view for the route. We'll see later that we need to use a layout instead of a view in order to support the detail page, but we'll start with a view for now.
 
 You may want to read an [explanation of how this route works](./react-redux-starter-kit-todos.md#todos-route).
 
-##### `src/routes/Posts/index.js`
-(compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/Counter/index.js))
+###### `src/routes/Posts/index.js` (compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/Counter/index.js) and [saga example](./redux-sagas-todos.md#srcroutestodosindexjs))
 
 ```js
 import { injectReducer } from '../../store/reducers'
@@ -143,12 +162,14 @@ export default (store) => ({ // <-- export the route creator
 ```
 
 ### Add Posts route to index
-We need to add our new Posts route to the index route. For this tutorial we're starting with the index route that ships with react-redux-starter-kit. We need to import our route and add it to the [`childRoutes`](https://github.com/reactjs/react-router/blob/master/docs/API.md#childroutes) array.
 
-*Note:* By default react-redux-starter-kit uses the [PlainRoute](https://github.com/reactjs/react-router/blob/master/docs/API.md#plainroute) style. This is highly recommended because it gives you greater control over [things like code-splitting](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure#code-splitting-anatomy). Most react-router examples use the JSX interface so you will have to translate some of that to this different style. In practice it's not that hard but it's frustrating because the PlainRoute interface is sparsely documented. You can [use `createRoute()` to import JSX routes](https://github.com/reactjs/react-router/blob/master/docs/API.md#createroutesroutes) if you need ([read "Usage with JSX" here](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure#code-splitting-anatomy)).
+We need to add our new Posts route to the index route. For this tutorial we're simply adding our route to the react-redux-starter-kit's index route. We need to import our route and add it to the [`childRoutes`](https://github.com/reactjs/react-router/blob/master/docs/API.md#childroutes) array.
 
-##### `src/routes/index.js`
-(compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js))
+*Note:* By default react-redux-starter-kit uses the [PlainRoute](https://github.com/reactjs/react-router/blob/master/docs/API.md#plainroute) style instead of the JSX style. This is highly recommended because it gives you greater control over [things like code-splitting](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure#code-splitting-anatomy). Most react-router examples use the JSX interface.
+
+If you've been working with react-router for a while you may need to translate some of that knowledge to this different style. In practice it's not that hard but be aware that the PlainRoute interface is sparsely documented. If you have a situation where you need to use JSX-style routes you can [use `createRoute()`](https://github.com/reactjs/react-router/blob/master/docs/API.md#createroutesroutes) ([read "Usage with JSX"](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure#code-splitting-anatomy) in the react-redux-starter-kit wiki for more).
+
+###### `src/routes/index.js` (compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/routes/index.js))
 
 ```js
 // ...
@@ -168,12 +189,12 @@ export const createRoutes = (store) => ({
 ```
 
 ### Add route to navigation
+
 The starter-kit app comes with some example code to help get you started. We'll be leaving that in place and simply adding our code along side what's already there. We need to add a link to our new route in the header navigtion.
 
-##### `src/components/Header/Header.js`
-(compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/components/Header/Header.js))
+###### `src/components/Header/Header.js` (compare to the [starter-kit version](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/components/Header/Header.js))
 
-```jsx
+```js
 // ...
     {' · '}
     <Link to='/posts' activeClassName={classes.activeRoute}>
@@ -183,10 +204,12 @@ The starter-kit app comes with some example code to help get you started. We'll 
 ```
 
 ## Adding a view
+
 We need to create a Posts view for displaying our list. A view is just a functional component that includes all of the components used in your route. A view could be considred a route's main template. Here we're simply including the `PostListContainer`. Notice that the view doesn't connect to the store because it doesn't need anything from the store, that's handled in the container component.
 
-##### `src/routes/Posts/components/PostsView.js`
-```jsx
+###### `src/routes/Posts/components/PostsView.js`
+
+```js
 import React from 'react'
 import PostListContainer from '../containers/PostListContainer'
 
@@ -199,15 +222,23 @@ const PostsView = () => (
 export default PostsView
 ```
 
-## Adding a module
-We need to create a Posts module for managing our posts in the store. We'll fill it in later. Below you see a very sparsely populated module with all of the main sections left empty.
+## Starting a module
 
-- *Selectors* are for reading from the state. A typical selector is a function that takes the state as an argument and returns a part of the state. Like `(state) => state.some.path`.
-- *Constants* and *Action Creators* are for dispatching actions.
-- *Sagas* are for managing complex asynchronous tasks.
-- *Reducers* are for updating the store.
+We need to create a Posts module for managing our posts in the store. We'll fill it in later. If you're comfortable you may wish to add code to the module as you go along to keep your app from throwing errors.
 
-##### `src/routes/Posts/modules/posts.js` (empty)
+If you were building an app from scratch that's exactly what you'd do. It's common practice to build redux app organically. Meaning, you can sketch out the parts you need and make them do something later.
+
+A [module](./readme.md#modules-control-specific-parts-of-the-store) controls specific parts of the store. A module is made up of selectors, constants, actions creators, sagas and reducers.
+
+- **Selectors** are for reading from the state. A typical selector is a function that takes the state as an argument and returns a part of the state. Like `(state) => state.some.path`.
+- **Constants** and **Action Creators** are for dispatching actions.
+- **Sagas** are for managing complex asynchronous tasks.
+- **Reducers** are for updating the store.
+
+Below you see a very sparsely populated module with all of the main sections left empty.
+
+###### `src/routes/Posts/modules/posts.js` (empty)
+
 ```js
 import { combineReducers } from 'redux'
 import { watchActions } from '../../../store/sagas'
@@ -234,7 +265,10 @@ export default combineReducers({
 ```
 
 ## Adding a list component to our route
-Before we fill in our module we need to create the list component referenced in our view. When you are building an app you should fill in the module for a container as you go. Meaning you don't really know what a module needs to go until you start connecting it to thing. Patterns will emerge as your component is used in more places. It typically very simple to refactor a module because it is only be used in a container component. We need to create a "connected" component to display our list because we want to manage the list of posts from the redux store.
+
+We need to create a "connected" containter component to display our list because we want to manage the list of posts from the redux store.
+
+Before we fill-in our module we need to create the list component referenced in our view. When you are building an app you should fill in the module for a container as you go. Meaning you don't really know what a module needs to do until you start connecting it to a container. Patterns will emerge as your module is used in more places. It is typically easy to refactor a module even when it's used in more than one container.
 
 Here's some commands for creating the necessary new files.
 
@@ -245,18 +279,23 @@ touch src/routes/Posts/components/Post.js
 touch src/routes/Posts/components/PostList.js
 touch src/routes/Posts/containers/PostListContainer.js
 ```
+
 ### Post list container
-In order to connect our list component to redux we need to create a container. We're going to be interfacing with the store in our container component. Later we'll see that we actually display the list of posts in a regular component that is wrapped by our container. This is a strict separation suggested by redux. Container components allow a developer to map logic from a module (which works with the redux store) to a component (which simply displays data).
+
+In a redux application you connect to a module from a container. In order to connect our list component to redux we need to also create a container component. We're going to be interfacing with the store from within our container component. Later we'll see that we actually display the list of posts in a regular component that is wrapped by our container. This is a strict separation suggested by redux. Container components allow a developer to map logic from a module (which works with the redux store) to a component (which simply displays data).
 
 As a rule of thumb, if you want to read from the store you need a container component.
 
 In react-redux, the [`connect()`](https://github.com/reactjs/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options) function provides functionality that ensures your component is re-rendered every time the state changes. Keeping components, containers and modules separated allows redux to efficiently keep your app up to date. In large applications this separation also allows developers to work on different parts of the code with minimal friction.
 
-Containers make it easier to refactor a module because it abstracts the logic for dealing with store from data needed to render the underlying component.
+Containers make it easier to refactor a module because it abstracts the logic for dealing with store from the data needed to render the underlying component.
+
+You may like reading about [how container components work](./readme.md#containers-connect-to-the-store).
 
 We'll go through this in detail below.
 
-##### `src/routes/Posts/container/PostListContainer.js`
+###### `src/routes/Posts/container/PostListContainer.js`
+
 ```js
 import { connect } from 'react-redux'
 import { fetchAll, getAll, isLoadingPosts, makePostSelectors } from '../modules/posts'
@@ -286,10 +325,15 @@ const PostListContainer = connect(
 export default PostListContainer
 ```
 
-1. We need to import selectors and actions from our module. Selectors like `getAll()` and `isLoadingPosts()` allow you to easily read values from the redux state without knowing very much about how they're stored. That makes it easy to manage the state logic in the module. A container is solely focused on hooking the module to the component. An action creator like `fetchAll()` can be used to dispatch an action that will update the state. We'll cover `makePostSelectors()` in more detail below. *Selectors* and *action creators* form the "interface" to a module.
+1. We need to import selectors and actions from our module. Selectors like `getAll()` and `isLoadingPosts()` allow you to easily read values from the redux state without knowing very much about how they're stored. That makes it easy to manage complex state logic in the module. A container is solely focused on hooking the module to the component. An action creator like `fetchAll()` can be used to dispatch an action that will update the state. We'll cover `makePostSelectors()` in more detail below. *Selectors* and *action creators* form the *interface* of a module.
 
   ```js
-  import { fetchAll, getAll, isLoadingPosts, makePostSelectors } from '../modules/posts'
+  import {
+    fetchAll, // <-- action creator returns { type: FETCH_ALL_POSTS }
+    getAll, // <-- selector returns [ ...posts ]
+    isLoadingPosts, // <-- selector returns boolean
+    makePostSelectors // <-- returns a set of selectors
+  } from '../modules/posts'
   ```
 
 2. `mapStateToProps()` is a function that takes the current redux state and uses it to populate the props of a component. Our component is a list of posts. So we need to map the list of posts from the state to a `posts` prop on the component. You can see that we're calling our selector functions with the redux state as the first argument. There are other ways to read the redux state but it's strongly recommended to only read from the state inside of a `mapStateToProps()` function. This function is used by the `connect()` function and is called every time the state changes.
@@ -297,12 +341,12 @@ export default PostListContainer
   ```js
   // this is the correct place to read form the redux store
   const mapStateToProps = (state) => {
-    const posts = getAll(state) // <-- get all posts from the state
+    const posts = getAll(state) // <-- select all posts from the state
     return {
       posts, // <-- map the posts to the props of the list component
       makePostSelectors, // <-- pass a function as a prop if you want
 
-      isLoading: isLoadingPosts(state), // <-- read a boolean from the state, rename a selector
+      isLoading: isLoadingPosts(state), // <-- read a boolean from the state and rename it
 
       // create custom values based on the current state
       // here we're checking if there are any posts in the list
@@ -311,9 +355,9 @@ export default PostListContainer
   }
   ```
 
-  *Note:* You may want to read about [double exclaimation points](http://stackoverflow.com/a/9284677/5149458).
+  *Note:* You may want to read about [double exclamation points](http://stackoverflow.com/a/9284677/5149458).
 
-3. `mapDispatchToProps()` is a function that allows you to create functions that dispatch actions and map them to props of a component. This function is also used by the `connect()` function and is called every time the state changes. Our list component needs to request posts if they haven't been loaded yet. The `fetchAll()` action starts the AJAX request for loading posts from the server. When that completes, the list component will reload and display the posts from the store.
+3. `mapDispatchToProps()` is a function that allows you to dispatch actions from a component. Our list component needs to request posts if they haven't been loaded yet. So we're creating a custom `fetchPosts()` function that will be available in the child component as `this.props.fetchPosts()`. We use fetchPosts to dispatch the fetchAll action. The `fetchAll()` action starts saga for fetching posts from the server. When that completes, the list component will reload and display the posts from the store.
 
   ```js
   // this is the correct place to dispatch actions
@@ -326,16 +370,18 @@ export default PostListContainer
   ```
 
 ### Post list component
-Typically you want to create a component as a pure function; we'll see an example of that further below. Because our list component needs to request posts if they aren't already loaded we need to create our component as a class instead. Using the class syntax makes [component lifecycle hooks](https://facebook.github.io/react/docs/component-specs.html#lifecycle-methods) available. Below you can see that we use the [`componentDidMount()`](https://facebook.github.io/react/docs/component-specs.html#mounting-componentdidmount) hook to check for posts after the component has been added to the page. In a universal app you might want to pre-load posts, that's an implementation detail outside the scope of this tutorial.
 
-You can read an overview of [best practices regarding components](./readme.md#components-should-be-simple-templates).
+Typically you want to create a component as a pure function; we'll see an example of that further below. Because our list component needs to request posts on load... we need to create our component using a class instead. Using the class syntax makes the [component lifecycle hooks](https://facebook.github.io/react/docs/component-specs.html#lifecycle-methods) available. Below you can see that we use the [`componentDidMount()`](https://facebook.github.io/react/docs/component-specs.html#mounting-componentdidmount) hook to check for posts after the component has been added to the page. In a universal app you might want to pre-load posts, that's an implementation detail outside the scope of this tutorial.
+
+You may like to read an overview of [best practices regarding components](./readme.md#components-should-be-simple-templates).
 
 *Note:* Starting in React 0.14 it's common practice to define components as [stateless functional components](https://facebook.github.io/react/blog/2015/10/07/react-v0.14.html#stateless-functional-components).
 
 *Note:* You should only need to use the [fancier ES6 class syntax](http://facebook.github.io/react/blog/2015/01/27/react-v0.13.0-beta-1.html#es6-classes) (introduced in React 0.13) in special cases, like when you need to use component lifecycle hooks.
 
-##### `src/routes/Posts/components/PostList.js`
-```jsx
+###### `src/routes/Posts/components/PostList.js`
+
+```js
 import React, { Component, PropTypes } from 'react'
 import Post from './Post'
 
@@ -378,8 +424,8 @@ PostList.propTypes = {
 export default PostList
 ```
 
-1. `componentDidMount()` fires when the component is loaded in the page. We check if we have posts and if posts are already loading. If not, we request that posts be fetched from the server. Once posts have been loaded the container will re-render this component.
-  
+1. `componentDidMount()` fires when the component is loaded in the page. It also fires every time the component is updated by the container component &mdash; every time the state changes. We need to check if we have posts and check if posts are already loading. If not, we dispatch a request to fetch posts from the server. Once posts have been loaded the container will re-render this component. It's crucial to implement the `isLoading` logic because the state changes several times as the saga deals with fetching the posts. Every time the state changes the component is remounted. If we didn't check if we were in the process of loading we might accidentally send a bunch of requests.
+
   ```js
   // this function fires after every time the component is rendered
   componentDidMount () {
@@ -394,11 +440,12 @@ export default PostList
   }
   ```
 
-2. `render()` is should return a template. Here we're checking if the posts are loading or not. If they're loading we show a loading message. If they've already loaded we render a list of posts. You can use the spread operator to map props from an individual post to a Post component. We're using the `makePostSelectors(post)` function to create an object that provides selectors that make it convenient to read values from an individual post. We simply spread those onto the component as well. We'll see how this is used in the `Post` component below.
+2. `render()` should return a template. Here we're checking if the posts are loading or not. If they're loading we show a loading message. If they've already loaded we render a list of posts. You can use the spread operator to map props from an individual post to a `<Post>` component. Something like `<Post {...post}>` makes props available in the component like `this.props.id`.
+
+  We're using the `makePostSelectors(post)` function to create an object that provides selectors that make it convenient to read values from an individual post. We simply spread that object onto the component like we do with the post. Importantly, `{...makePostSelectors(post)}` makes the `get()` selector available as `this.props.get()` in the component. We'll see how this is used in the `<Post>` component below.
 
   ```js
   // this function fires every time a component is rendered
-
   render () {
     // grab what we need form the component's props
     const { posts, isLoading, makePostSelectors } = this.props
@@ -421,12 +468,18 @@ export default PostList
   ```
 
 ### Post component
-Finally we need to create a component for displaying an individual item in the list of posts. We actually only need the `get()` selector that we made with `makePostSelectors(post)` in the list component above. The `get` selector simply returns attributes from a post by key. Simply for the sake of convenience we prefer to access these attributes using a selector function. You can see in the `PostList` above that the properties of a post are also copied onto the component. If you wanted to you could replace `get('slug')` with `this.props.attributes.slug`. All of this is an implementation detail of your app -- your module's interface is totally up to you and is not dictated by redux or the WordPress API. You may wish to implement something slightly different in your app.
+
+Finally we need to create a `<Post>` component for displaying an individual item in the list of posts. The purpose of this component is to display all of the attributes of a post in a template. We actually only need the `get()` selector that we made with `makePostSelectors(post)` above. The `get` selector simply returns attributes from a post by key.
+
+You can see in the `<PostList>` above that the attributes of a post are also copied onto the component. You could read the attributes from the components props directly as `attributes[key]`. Simply for the sake of convenience we prefer to access these attributes using a selector function. As you refactor your app it is convenient to be able to update a selector in a central place (the module) instead of needing to update multiple components.
+
+If you wanted to you could replace `get('slug')` below with `props.attributes.slug`. All of this is an implementation detail of your app &mdash; your module's interface is totally up to you and is not dictated by redux or the WordPress API. You may wish to implement something slightly different in your app.
 
 Because the WordPress API returns rendered HTML, we need to use [`dangerouslySetInnerHTML`](https://facebook.github.io/react/tips/dangerously-set-inner-html.html) to display the excerpt of the post in our list. The awkward code is purposeful to ensure that developers think twice before rendering untrusted HTML strings.
 
-##### `src/routes/Posts/components/Post.js`
-```jsx
+###### `src/routes/Posts/components/Post.js`
+
+```js
 import React, { PropTypes } from 'react'
 import { Link } from 'react-router'
 
@@ -460,13 +513,16 @@ export default Post
 3. `get()` is a convenience function for reading an attribute from a post. We'll see how that works in more detail when we create our module for reading values from the redux store. We'll see later how the posts object is constructed in a reducer.
 
 ## Fill in our module
-We're finally ready to fill in our module. At this point we should have a mostly functioning app that throws errors because our module is empty.
+We're finally ready to fill in our module. At this point we should have a mostly functioning app that throws errors because our module is empty. If you were more adventurous as you followed along you may already have something that *at least* doesn't throw errors :)
 
-If you've been following along closely above you might have some ideas of the kinds of things that our module needs to do. We already know the selectors and actions that our container component needs. We'll start with the `fetchAll`, `getAll`, `isLoadingPosts`, `makePostSelectors` functions and then fill in the sagas and reducers needed to make these functions work.
+If you've been following along closely above you might have some ideas of the kinds of things that our module needs to do. After reviewing the code in the `<PostListContainer>`, `<PostList>` and `<Post>` we already know the selectors and actions that our posts module needs. We'll start with the `fetchAll`, `getAll`, `isLoadingPosts`, `makePostSelectors` functions and then fill in the sagas and reducers needed to make these functions work.
 
-We'll go through this in detail below.
+Below is a complete module for you to copy and past into your app.
 
-##### `src/routes/Posts/modules/posts.js`
+We'll go through this in detail further below.
+
+###### `src/routes/Posts/modules/posts.js`
+
 ```js
 import { combineReducers } from 'redux'
 import { createAction, handleActions } from 'redux-actions'
@@ -573,7 +629,20 @@ export default combineReducers({
 ```
 
 ### Adding selectors
+
 The bulk of what your containers will include from your module will be selectors. Selectors are in charge of returning portions of the state that are relevant to your app. Below you'll see all of the selectors we're using in the `PostListContainer`. We'll go through them.
+
+You'll notice that although we recommended reselect for creating memoized selectors... most selectors don't need it. Most of the time a selector directly selects a value from the state. There isn't really anything that can be done to speed that up.
+
+You would use a memoized selector, like the ones reselect's `createSelector()` returns, cache the result of computed selectors. The trick is that the cache is invalidated every time state changes. It's exciting but we don't need it just yet.
+
+*Note:* There's something special to take note of in the way selectors are used in your app. They're meant to be used only in `mapStateToProps`... a function that is called every time the state changes. This reveals the hidden trick to how `createSelector()` works &mdash; it recalculates everything when the state changes without having to subscribe to an event. Instead of relying on events, it happens naturally as because of how its implemented. You can see a version of the same trick being used in the `makePostSelectors()` function below.
+
+*Note:* You can see in `makePostSelectors()` that it relies on [functional scope](https://github.com/getify/You-Dont-Know-JS/blob/master/scope%20%26%20closures/ch3.md) to create a sort of ephemeral instance. The object that it returns is only useful for the state it was created for. Because of the way redux connects to react, you can be sure that the object is using the current state as long as you use it within `mapStateToProps`.
+
+*Note:* If you find yourself creating "computed selectors" that combine multiple values into dependent values you should use reselect.
+
+Selectors are meant to be used in the `mapStateToProps` function of a component.
 
 ```js
 // ... snippet from src/routes/Posts/modules/posts.js
@@ -590,9 +659,16 @@ export const makePostSelectors = (post) => ({
 })
 ```
 
-1. `getAppState(state)` is a convenience selector for grabbing the part of the global state that pertains to this app. In a redux app all of the state is stored in the same place. Commonly each route has a part of the state that it manages. In the Posts route we created above we injected our reducer as `postsApp`. In a container component `state` contains the whole state, not just the `postsApp` portion. This is a great convenience because it allows your modules to work with the state in unrestricted ways. It's customary to make a selector to make it easier to grab the app-specific portion of the state that your module is concerned with.
+1. `getAppState(state)` is a convenience selector for grabbing the part of the global state that pertains to this app. In a redux app all of the state is stored in the same place. You're free to store things as you please but there are a few conventions that redux encourages.
+
+  Commonly each route has a part of the state that it manages. By convention the reducers for a route are added to the store under a common key. In the Posts route we created above we injected our reducer as `postsApp`. This is enforced in the way that `combineReducers()` functions. The end result is that in a reducer you are always working with a select part of the state.
+
+  In a container component, `state` contains the *whole* state, not just the `postsApp` portion. This is a great convenience because it allows your containers to work with the state in unrestricted ways.
+
+  When you're creating selectors in your module you will need to first select `postsApp` from the state. It's customary to make an app-state selector to make it easier to grab the app-specific portion of the state that your module is concerned with.
 
   ```js
+  // a selector
   // convenient way to grab the state related to the posts app
   export const getAppState = (state) => state.postsApp
   ```
@@ -601,27 +677,40 @@ export const makePostSelectors = (post) => ({
   // in a container
   import { getAppState } from '../modules/posts'
 
-  // presume state looks like { postsApp: { ...posts }, ...otherStuff }
+  // presume state looks like:
+  /*
+  {
+    postsApp: { ...posts },
+    ...otherStuff
+  }
+  */
+
   const mapStateToProps = (state) => {
+    // use a selector to grab part of the state
+    const app = getAppState(state)
     return {
-      app: getAppState(state) // --> { ...posts }
+      app // --> { ...posts }
     }
   }
   ```
 
-2. `getAll(state)` returns only the posts. We'll see later when we implement the reducer that we're storing the list of posts as an array under `posts.data`. You can see here that we use the `getAppState(state)` selector to grab our posts app. This makes it easy to refactor the app later and "move the app" to a different part of the store with minimal changes. You can also see that we're returning an empty array by default. This prevents errors from happening in components when `posts.data` is undefined.
+2. `getAll(state)` returns only the posts. We'll see later when we implement the reducer that we're storing the list of posts as an array under `posts.data`. You can see here that we use the `getAppState(state)` selector to grab our posts app. This makes it easy to refactor the app later and "move the app" to a different part of the store with minimal changes to the selectors that rely on it.
+
+  You can also see that we're returning an empty array by default if posts.data is falsey. This prevents errors from happening in components when `posts.data` is undefined.
 
   ```js
+  // selects the data array, defaults to empty array
+  // you may prefer calling this function selectAllPosts()
   export const getAll = (state) => (getAppState(state).posts.data || [])
   ```
 
-3. `isLoadingPosts(state)` returns a boolean if the `posts.meta.loading` prop is set to true. We'll see later that this value is managed by our saga for fetching posts. You can see here that we use the `getMeta(state)` selecector to pull out the `posts.meta` object before trying to read the `loading` prop. It's common to chain selectors like this. If you find yourself creating "computed selectors" that combine multiple values into dependent values you should use reselect.
+3. `isLoadingPosts(state)` returns a boolean if the `posts.meta.loading` prop is set to true. We'll see later that this value is managed by our saga for fetching posts. You can see here that we use the `getMeta(state)` selector to pull out the `posts.meta` object before trying to read the `loading` prop. It's common to chain selectors like this.
 
   ```js
   export const isLoadingPosts = (state) => !!getMeta(state).loading
   ```
 
-4. `makePostSelectors(post)` returns an object containing selector functions bound to an individual post. This is used in cases where a post object is known and you want to make cinvenient selectors for working with it. We're showing here just two functions, `get(attributeName)` and `getAttributes()` for working with attributes. We'll see much later that it's a good place to put functions for reading meta-data about a given post as well, like `isLoading`.
+4. `makePostSelectors(post)` returns an object containing selector functions bound to an individual post. This is used in cases where a post object is known and you want to make convenient selectors for working with it. We're showing here just two functions, `get(attributeName)` and `getAttributes()` for working with attributes. You may find that it's a good place to put functions for selecting other types of attributes from posts as well, like `isLoading()` or `isNew()`.
 
   ```js
   // this function expects a single post, not the entire state
@@ -635,8 +724,43 @@ export const makePostSelectors = (post) => ({
   })
   ```
 
+  One benefit of using the `makeThingSelectors(thing)` pattern is that you can call selectors without having to also be holding the state. The returned selectors could be called "bound selectors" because they are bound to the state that was passed into the "maker" function. It's similar in concept to how [`bindActionCreators()`](http://redux.js.org/docs/api/bindActionCreators.html) works. Instead of binding an action creator to the dispatcher we're binding a selector to the state.
+
+  ```js
+  // ... usage of makePostSelectors(post) in a container
+  // @see https://repl.it/CZ5e/1
+
+  const mapStateToProps = (state) => {
+    const post = getAllPosts(state)[0]
+
+    // "get" is a bound selector
+    // the component doesn't need access to the state
+    // because it can select the values it needs
+    // without it
+
+    // use like get('slug')
+
+    const { get } = makePostSelectors(post)
+
+    return {
+      get // available as this.props.get() in the component
+    }
+  }
+  ```
+
 ### Adding constants and actions
-Constants can make modules seem noisy but they're a good way of keeping track of the "things your module does." Each action needs a constant. We'll see later that these constants are used by sagas and reducers for doing things when actions are dispatched.
+
+Constants can make modules seem noisy but they're a good way of keeping track of the "things your module does." Each action needs a constant. We'll see later that these constants are used by sagas and reducers for doing things when certain actions are dispatched.
+
+You may like reading up on [how redux-actions works](https://github.com/acdlite/redux-actions).
+
+Actions can seem confusing but they are easily demystified. We review `createAction()` in step two below. It's important to remember that an "action" is just a plain javascript object. Redux does all the hard work of dispatching your actions.
+
+In order to tightly control when the state is updated, you should only dispatch actions from `mapDispatchToProps` in a container. Once you `dispatch(action)`, redux sends it to your middleware where redux-saga might intercept it. If no middleware catches the action it goes to the reducers. Actions are a convenient way to field events in your application.
+
+The hidden benefit of using dispatch instead of a more familiar evented system is the way state changes trigger container components to re-render. You can dispatch an action in one corner of the app everything will update accordingly without need to explicitly subscribe to a global event. Or, actions are like global events except they can only dispatched from a container and and subscribed to by a saga or a reducer.
+
+So, while constants may seem redundant and noisy, they're a key part of an app's internal communication structure.
 
 ```js
 // ... snippet from src/routes/Posts/modules/posts.js
@@ -652,9 +776,15 @@ const setMeta = createAction(SET_POSTS_META_KEY, (key, value) => ({ key, value }
 const receivePosts = createAction(RECEIVE_ALL_POSTS)
 ```
 
-1. We create a constant for each action. Some of the constants aren't used outside this module so we didn't export them. It's important to know that constants need to be unique across your entire app... even if you don't export them. All actions are handled by redux before being sent to your reducers and sagas. This means that your actions could overlap with actions from another part of your app. This is good news and a major advantage of redux if that's what you want. It's also a common bug that's difficult to track down. This is why many classic Flux apps recommended keeping all constants in the same file. While constants seem ugly, redundant and annoying, they're a key part of what makes redux applications so predictable and easy to refactor.
+1. We create a constant for each action. Some of the constants aren't used outside this module so we didn't export them. It's important to know that constants need to be unique across your entire app... even if you don't export them. All actions are handled by redux before being sent to your sagas and reducers. This means that your actions may overlap with actions from another part of your app. This is good news and a major advantage of redux if that's what you want. It's also a common bug that's difficult to track down &mdash; make sure your action constants are globally unique. This is why many classic Flux apps recommended keeping all constants in the same file.
 
-2. We use [`createAction`](https://github.com/acdlite/redux-actions#createactiontype-payloadcreator--identity-metacreator) to create action creators. This makes our actions much more predicable as every action looks like this: `{ type, payload }`. Usually you can just use createAction with a constant and it will create a payload from the argument that is passed. If you need to accept multiple arguments or construct a specific payload you can provide a payloadCreator function.
+  While constants seem ugly, redundant and annoying, they're a key part of what makes redux applications so predictable and easy to refactor.
+
+2. We use [`createAction()`](https://github.com/acdlite/redux-actions#createactiontype-payloadcreator--identity-metacreator) to create action creators. This makes our actions much more predicable as every action looks like this: `{ type, payload }`. You may like reading more about the [FSA-compliant actions](https://github.com/acdlite/flux-standard-action) that createAction produces.
+
+  There's some hidden trickiness to action creators created using `createAction(type)`. The first argument is a action type, usually a constant. The second argument should be a payload creator but we left it blank. It might seem confusing at first but you don't need to define anything else for an action creator that takes 0 or 1 arguments.
+
+  By default you can just use createAction with a constant. like `createAction(ACTION_TYPE)` and it will create a payload from the argument you pass to it. If you need to accept multiple arguments or construct a specific payload you can provide a payloadCreator function.
 
   ```js
   // use it like fetchAll()
@@ -671,10 +801,38 @@ const receivePosts = createAction(RECEIVE_ALL_POSTS)
   const receivePosts = createAction(RECEIVE_ALL_POSTS)
   ```
 
-*Note:* At this point your app should be able to load without an errors. You will need to add sagas and reducers to make your app *do* something. But at this point is is able to render itself.
+  You don't have to use createAction if you don't want to. You can read about [creating actions creators](http://redux.js.org/docs/basics/Actions.html#action-creators) in the redux manual. One benefit of using createAction instead of writing the action creator yourself is that it starts to encourage treating every action the exact same way. This is a very good thing once your start building your reducers as it completely removes the need to refactor an action creator in most cases.
+
+  It's extremely beneficial to presume that every action consists of only a type and a payload. Only in special cases, like `setMeta(key, value)`, will you need to create the payload from a list of arguments. The `createActions()` function makes it trivial to create a new action creator that accepts a single argument as the optional payload.
+
+  ```js
+  // ... equivalent to what createAction does
+
+  // we don't need a payload for this action
+  export const fetchAll = () => ({
+    type: FETCH_ALL_POSTS
+  })
+
+  // sometimes we need to create a payload
+  const setMeta = (key, value) => ({
+    type: SET_POSTS_META_KEY,
+    payload:{ key, value }
+  }))
+
+  // other times we can just pass the payload along
+  const receivePosts = (payload) => ({
+    type: RECEIVE_ALL_POSTS,
+    payload
+  }))
+  ```
+
+*Note:* At this point your app should be able to load without any errors. You will need to add sagas and reducers to make your app *do* something. But at this point your app is able to render itself.
 
 ### Adding sagas
-For now we only need one saga for fetching a post from the server. You don't call a saga directly, instead a saga watches for specific actions. Below you can see that we watch list of actions and return the watchers as the `rootSaga`.
+
+For now we only need one saga for fetching a post from the server. You don't call a saga directly, instead a saga watches for specific actions. Below you can see that we watch a list of actions and return the watchers as the `rootSaga`.
+
+For our purposes it's simple enough to just do the `fetch` call right inside the saga. As your app grows you're likely to follow a common pattern and move all of fetching code into functions outside of your saga. As you add more sagas and implement the API across different modules you'll see the benefit of keeping utility functions for fetching entities in a central place. This type of refactoring is easy to do later as your app matures. Your saga is only concerned with extracting values from promises and dispatching actions. It doesn't really matter to the saga how that promise is created.
 
 ```js
 // ... snippet from src/routes/Posts/modules/posts.js
@@ -701,7 +859,9 @@ export const rootSaga = watchActions({
 
 1. `postsUrl` is how you request a list of posts form the WordPress demo API. In a larger app you might have a utility function that constructs a proper URL for you. You may also wish to keep your URL in a config file to more easily control using different URLs for different environments.
 
-2. `*fetchAllPosts()` is a saga. It accepts an action as its argument. Sagas yield effects. In redux-saga you typically yield a `call`, meaning you want to call a function that returns a promise and resume the saga when the promise is fulfilled. You  might also yield a `put`, meaning you want to dispatch a action and resume the saga. You can see that we call `fetch` from isomorphic fetch and we call `response.json` to get the JSON from the response. You can also see that we put `setMeta` to toggle the loading state and to capture errors. We also put `recievePosts` with the payload from the AJAX call.
+2. `*fetchAllPosts()` is a saga. It accepts an action as its argument (but it doesn't use it for anything). Sagas yield effects. In redux-saga you typically yield a `call`, meaning you want to call a function that returns a promise and resume the saga when the promise is fulfilled.
+
+  You  might also yield a `put`, meaning you want to dispatch an action. You can see that we call `fetch` from isomorphic-fetch and we call `response.json()` to get the JSON from the response. You can also see that we put `setMeta` to toggle the loading state and to capture errors. We also put `recievePosts` with the payload from the AJAX call.
 
   ```js
   // a saga is a generator function
@@ -719,7 +879,7 @@ export const rootSaga = watchActions({
       const response = yield call(fetch, `${postsUrl}?_embed`)
 
       // fetch returns a response object
-      // the json method returns a promise
+      // the json method also returns a promise
       // we use call to get the json after that promise resolves
       // @see https://developer.mozilla.org/en-US/docs/Web/API/Body/json
       const json = yield call(() => response.json())
@@ -743,12 +903,13 @@ export const rootSaga = watchActions({
   ```js
   export const rootSaga = watchActions({
     [FETCH_ALL_POSTS]: fetchAllPosts
-    // <-- you would add other saga here
+    // <-- you would add other sagas here
   })
   ```
 
 ### Adding reducers
-Reducers are used to alter the state. You may want to read more about [how reducers work](http://redux.js.org/docs/basics/Reducers.html). We use [`handleActions`](https://github.com/acdlite/redux-actions#handleactionsreducermap-defaultstate) to make writing reducers much easier. 
+
+Reducers are used to alter the state. You may want to read more about [how reducers work](http://redux.js.org/docs/basics/Reducers.html). We use [`handleActions`](https://github.com/acdlite/redux-actions#handleactionsreducermap-defaultstate) to make writing reducers much easier.
 
 ```js
 // ... snippet from src/routes/Posts/modules/posts.js
@@ -798,7 +959,7 @@ Normally it's easier to read your reducers from the bottom up.
 2. `posts` is the "lowest" reducer -- meaning the lowest down in the file. The lowest reducer must handle all actions that are passed to other reducers in the cascade. It's common practice to have reducers cascade into each other. You can see that the posts reducer branches to the `postsMeta` and `postsData` reducers. Each time you branch to another reducer you want to pass it a portion of the state.
 
   ```js
-  // receives state.postsApp.posts as "state" 
+  // receives state.postsApp.posts as "state"
   const posts = handleActions({
 
     // when the setMeta action is dispatched...
@@ -818,7 +979,7 @@ Normally it's easier to read your reducers from the bottom up.
 3. `postsMeta` handles actions related to the meta data we store about posts. Here we can see that we handle a generic action that allows for setting the value for a key.
 
   ```js
-  // recieves state.postsApp.posts.meta as "state" 
+  // recieves state.postsApp.posts.meta as "state"
   const postsMeta = handleActions({
 
     // when the setMeta action is dispatched...
@@ -832,7 +993,7 @@ Normally it's easier to read your reducers from the bottom up.
 4. `postsData` handles actions related to the posts themselves. You can read about [designing the state shape](http://redux.js.org/docs/advanced/AsyncActions.html#designing-the-state-shape) in a redux application.
 
   ```js
-  // recieves state.postsApp.posts.data as "state" 
+  // recieves state.postsApp.posts.data as "state"
   const postsData = handleActions({
 
     // when the receivePosts action is dispatched...
@@ -847,7 +1008,7 @@ The [redux manual suggests](http://redux.js.org/docs/advanced/AsyncActions.html#
 
 We're roughly mimicking the [JSONAPI format](http://jsonapi.org/format/) which is different from the structure that normalizr creates. You're welcome to store data however you please. Using JSONAPI as a design inspiration solves some interesting problems with regard to storing objects retrieved from an API. Namely it demonstrates how to store entities separate from each other and keep their linkages. You may want to check out this gist of [how a JSONAPI inspired structure might look](https://gist.github.com/heygrady/62680ca4a79dcd540369037b83630187).
 
-For this demo we're not following best practice. Normally you'd want to store the authors and other related entities in a separate part of the store. To keep things simple we're storing the author in the post entity itself. This optimizes the store for easily selecting posts. A better practice for designing your state shape is explained in detail in the [normalizr docs](https://github.com/paularmstrong/normalizr#the-problem) and in the [redux manual](http://redux.js.org/docs/advanced/AsyncActions.html#designing-the-state-shape). 
+For this demo we're not following best practice. Normally you'd want to store the authors and other related entities in a separate part of the store. To keep things simple we're storing the author in the post entity itself. This optimizes the store for easily selecting posts. A better practice for designing your state shape is explained in detail in the [normalizr docs](https://github.com/paularmstrong/normalizr#the-problem) and in the [redux manual](http://redux.js.org/docs/advanced/AsyncActions.html#designing-the-state-shape).
 
 You may want to read up on [using the WP-API to retrieve a post](http://v2.wp-api.org/reference/posts/). You you can also look at [the JSON that is returned](https://demo.wp-api.org/wp-json/wp/v2/posts/?_embed). If you want to see a nicely formatted version check out this [gist of what the demo wp-api returns for posts](https://gist.github.com/heygrady/b59c8e1018e33acb7cdbd1e32e5d8a42).
 
@@ -911,7 +1072,7 @@ The post route is very simple. It doesn't need to inject any additional reducers
 
 You may want to read more about [using paths in react-router](https://github.com/reactjs/react-router/blob/master/docs/guides/RouteMatching.md#path-syntax).
 
-##### `src/routes/Posts/routes/Post/index.js`
+###### `src/routes/Posts/routes/Post/index.js`
 ```js
 export default (store) => ({
   path: ':slug', // <-- use a param in the path
@@ -936,7 +1097,7 @@ We need to configure our Posts list view as the [`IndexRoute`](https://github.co
 
 You can see that we're also using code-splitting to load the IndexRoute using [`getIndexRoute()`](https://github.com/reactjs/react-router/blob/master/docs/API.md#getindexroutelocation-callback). In general, code-splitting is for loading components, reducers and saga within routes. Routes themselves should be loaded synchronously. The reasoning might seem odd at first but your app needs to know about all of its routes to properly render a page, but it doesn't need to have all of the components handy for a route that no one has visited.
 
-##### `src/routes/Posts/index.js` (master-detail)
+###### `src/routes/Posts/index.js` (master-detail)
 ```js
 import { injectReducer } from '../../store/reducers'
 import { injectSaga } from '../../store/sagas'
@@ -1000,8 +1161,8 @@ mkdir -p src/routes/Posts/layouts
 touch src/routes/Posts/layouts/PostsLayout.js
 ```
 
-##### `src/routes/Posts/layouts/PostsLayout.js`
-```jsx
+###### `src/routes/Posts/layouts/PostsLayout.js`
+```js
 import React from 'react'
 
 const PostsLayout = ({ children }) => (
@@ -1029,7 +1190,7 @@ The post detail is unique in that it's view is a connected component. There are 
 
 You'll notice that we're requesting additional items from our posts module that we created above. We'll be going into that in more detail below.
 
-##### `src/routes/Posts/routes/Post/containers/PostViewContainer.js`
+###### `src/routes/Posts/routes/Post/containers/PostViewContainer.js`
 ```js
 import { connect } from 'react-redux'
 import PostView from '../components/PostView'
@@ -1067,8 +1228,8 @@ Here we can see the post detail view. Similar to the [PostList component](#srcro
 
 You'll also notice some logic in the `render` method for showing different things based on the application state. When it comes time to actually display the posts itself we use a `Post` component that we will define further below.
 
-##### `src/routes/Posts/routes/Post/components/PostView.js`
-```jsx
+###### `src/routes/Posts/routes/Post/components/PostView.js`
+```js
 import React, { Component, PropTypes } from 'react'
 import { Link } from 'react-router'
 import Post from './Post'
@@ -1122,8 +1283,8 @@ Here we can see the component for the post itself. We've kep this extremely simp
 
 Below you can see that the template looks very similar to [the `Post` component we created for the list view](#srcroutespostscomponentspostjs). The notable difference is using `content` instead of `except` for the HTML content. If you're feeling crafty you could make a component that could be used in either case. For now we'll stick with two separate but similar components. In a real application the `Post` template below will likely be far more robust than the one for the list view.
 
-##### `src/routes/Posts/routes/Post/components/Post.js`
-```jsx
+###### `src/routes/Posts/routes/Post/components/Post.js`
+```js
 import React, { PropTypes } from 'react'
 
 const createMarkup = (htmlString) => ({ __html: htmlString })
@@ -1159,7 +1320,7 @@ Now we're in the home stretch. We need to add several new things to our module t
 
 For this demo we're going to resort to using [lodash.memoize](https://www.npmjs.com/package/lodash.memoize). You may wish to read up on [how memoize works](https://lodash.com/docs#memoize). We're using lodash.memoize instead of reselect because reselect doesn't
 
-At the start of this demo we [mentioned using reselect](#quick-install-react-redux-starter-kit) for creating memoized selectors. However, [creating a selector that can take arguments](https://github.com/reactjs/reselect/issues/100) is [really confusing](https://github.com/reactjs/reselect/issues/47). It's probably best to use reselect but currently the docs don't cover use cases where you need to pass additional arguments besides the state. This is a philosophical decision on the part of the reselect maintainers. The intention of reselect is to select and memoize values from the state. If a value isn't in the state, reselect makes life difficult. You might be tempted to simply use the [`defaultMemoize()`](https://github.com/reactjs/reselect#defaultmemoizefunc-equalitycheck--defaultequalitycheck) function from reselect directly, but it is also confusing. 
+At the start of this demo we [mentioned using reselect](#quick-install-react-redux-starter-kit) for creating memoized selectors. However, [creating a selector that can take arguments](https://github.com/reactjs/reselect/issues/100) is [really confusing](https://github.com/reactjs/reselect/issues/47). It's probably best to use reselect but currently the docs don't cover use cases where you need to pass additional arguments besides the state. This is a philosophical decision on the part of the reselect maintainers. The intention of reselect is to select and memoize values from the state. If a value isn't in the state, reselect makes life difficult. You might be tempted to simply use the [`defaultMemoize()`](https://github.com/reactjs/reselect#defaultmemoizefunc-equalitycheck--defaultequalitycheck) function from reselect directly, but it is also confusing.
 
 You may notice that we're not adding any additional reducers. The WP-API doesn't offer [a direct way to fetch a post by its slug](https://github.com/WP-API/WP-API/issues/456). Instead, we have to perform a filter search, which returns an array of results. This is actually beneficial for our app because it allows us to use the same reducer for receiving multiple posts as well as receiving a single post by slug.
 
@@ -1171,7 +1332,7 @@ Lastly you'll notice that our new saga has a peculiar name: `fetchPostBySlugSaga
 npm install --save lodash.memoize
 ```
 
-##### `src/routes/Posts/modules/posts.js` (by slug)
+###### `src/routes/Posts/modules/posts.js` (by slug)
 ```js
 // ... new functions added to src/routes/Posts/modules/posts.js
 
