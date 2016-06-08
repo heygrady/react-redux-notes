@@ -1186,11 +1186,13 @@ export default PostsLayout
 Now we're ready to start creating the components for our view. Because our route is using a param in the path we need to connect our view to the redux store. We're using [react-router-redux](https://github.com/reactjs/react-router-redux) in this app. The biggest different between using vanilla react-router and using it with react-router-redux is that the routers state is stored in redux. This actually makes it far easier to work with the router from within redux connected components. You may want to read up on [accessing the router's state in a container component](https://github.com/reactjs/react-router-redux#how-do-i-access-router-state-in-a-container-component).
 
 ### Post view container
+
 The post detail is unique in that it's view is a connected component. There are other ways to arrange your app. You could read the router's state from any component you like. Feel to read the `:slug` param from within a container component other than the view.
 
 You'll notice that we're requesting additional items from our posts module that we created above. We'll be going into that in more detail below.
 
 ###### `src/routes/Posts/routes/Post/containers/PostViewContainer.js`
+
 ```js
 import { connect } from 'react-redux'
 import PostView from '../components/PostView'
@@ -1198,7 +1200,7 @@ import { getPostBySlug, makePostSelectors, fetchPostBySlug } from '../../../modu
 
 const mapStateToProps = (state, ownProps) => {
   const slug = ownProps.params.slug
-  const post = getPostBySlug(state, slug)
+  const post = getPostBySlug(state)(slug) // <-- a curried selector!
   return {
     slug,
     makePostSelectors,
@@ -1224,11 +1226,13 @@ export default PostViewContainer
 ```
 
 ### Post view
+
 Here we can see the post detail view. Similar to the [PostList component](#srcroutespostscomponentspostlistjs) above, this post view needs to be a class component. When we navigate to a detail view from the list the post will have already been loaded from the API. However, if someone navigates directly to a post we'll need to fetch that post by it's slug. This is handled in the container above but it's triggered here.
 
 You'll also notice some logic in the `render` method for showing different things based on the application state. When it comes time to actually display the posts itself we use a `Post` component that we will define further below.
 
 ###### `src/routes/Posts/routes/Post/components/PostView.js`
+
 ```js
 import React, { Component, PropTypes } from 'react'
 import { Link } from 'react-router'
@@ -1279,11 +1283,13 @@ export default PostView
 ```
 
 ### Post
+
 Here we can see the component for the post itself. We've kep this extremely simple for demonstration purposes. From here you can feel free to add things like comments, links to author detail pages and anything else that you would like to retrieve from the WordPress API.
 
 Below you can see that the template looks very similar to [the `Post` component we created for the list view](#srcroutespostscomponentspostjs). The notable difference is using `content` instead of `except` for the HTML content. If you're feeling crafty you could make a component that could be used in either case. For now we'll stick with two separate but similar components. In a real application the `Post` template below will likely be far more robust than the one for the list view.
 
 ###### `src/routes/Posts/routes/Post/components/Post.js`
+
 ```js
 import React, { PropTypes } from 'react'
 
@@ -1306,6 +1312,7 @@ export default Post
 ```
 
 ### Making it work
+
 At this point you should be able to view a detail page except the app will throw errors if you try to. You can define the necessary functions to get the app working if you'd like.
 
 ```js
@@ -1334,6 +1341,7 @@ npm install --save lodash.memoize
 ```
 
 ###### `src/routes/Posts/modules/posts.js` (by slug)
+
 ```js
 // ... new functions added to src/routes/Posts/modules/posts.js
 
