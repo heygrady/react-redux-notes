@@ -1317,7 +1317,7 @@ At this point you should be able to view a detail page except the app will throw
 
 ```js
 // add this near the top of src/routes/Posts/modules/posts.js
-export const getPostBySlug = () => {}
+export const getPostBySlug = (state) => (slug) => {} // <-- a curry! it doesn't return anything yet
 export const FETCH_POST_BY_SLUG = 'FETCH_POST_BY_SLUG'
 export const fetchPostBySlug = createAction(FETCH_POST_BY_SLUG)
 ```
@@ -1326,15 +1326,26 @@ export const fetchPostBySlug = createAction(FETCH_POST_BY_SLUG)
 
 Now we're in the home stretch. We need to add several new things to our module to manage individual posts. We'll be going through all of the changes in detail below.
 
-For this demo we're going to resort to using [lodash.memoize](https://www.npmjs.com/package/lodash.memoize). You may wish to read up on [how memoize works](https://lodash.com/docs#memoize). We're using lodash.memoize in addition to reselect because of how reselect works.
+At the start of this demo we [mentioned using reselect](#quick-install-react-redux-starter-kit) for creating memoized selectors. However, [creating a selector that can take arguments](https://github.com/reactjs/reselect/issues/100) is [really confusing](https://github.com/reactjs/reselect/issues/47). It's probably best to use reselect but currently the docs don't cover use cases where you need to pass additional arguments besides the state. This is a philosophical decision on the part of the reselect maintainers. The intention of reselect is to select and memoize values from the *state*. If a value isn't in the state &mdash; the slug we're passing isn't actually available in the state &mdash; reselect makes life difficult. In order to solve our problem of state we have a a few options. One is to add the slug to the state. This would allow us to use `createSelector()` in the way that reselect intended. The other way is to have our createSelector return a curried selector. Our curried selector will need to be memoized independently of the state-bound memoization that reselect provides by default. If this seems like a lot of work, don't worry. It's actually really easy.
 
-At the start of this demo we [mentioned using reselect](#quick-install-react-redux-starter-kit) for creating memoized selectors. However, [creating a selector that can take arguments](https://github.com/reactjs/reselect/issues/100) is [really confusing](https://github.com/reactjs/reselect/issues/47). It's probably best to use reselect but currently the docs don't cover use cases where you need to pass additional arguments besides the state. This is a philosophical decision on the part of the reselect maintainers. The intention of reselect is to select and memoize values from the state. If a value isn't in the state, reselect makes life difficult. You might be tempted to simply use the [`defaultMemoize()`](https://github.com/reactjs/reselect#defaultmemoizefunc-equalitycheck--defaultequalitycheck) function from reselect directly, but it is also confusing.
+If you're new to curried functions you should know that a curried function is simply a function you call twice. For instance, the `connect()()` function is a curried function. You can [read up on curried functions](http://fr.umio.us/favoring-curry/) and [why they're great](https://hughfdjackson.com/javascript/why-curry-helps/). Lodash has a [curry](https://www.npmjs.com/package/lodash.curry) function but we don't need it. You can easily build a curried function yourself.
 
-You may notice that we're not adding any additional reducers. The WP-API doesn't offer [a direct way to fetch a post by its slug](https://github.com/WP-API/WP-API/issues/456). Instead, we have to perform a filter search, which returns an array of results. This is actually beneficial for our app because it allows us to use the same reducer for receiving multiple posts as well as receiving a single post by slug.
+```js
+// a curried function
+const spicyCoconutCurry = (spices) => (coconutMilk) => spices + coconutMilk
 
-You may notice that we're not using the demo URL below. The WP-API demo has a [peculiar CORS implementation](https://github.com/WP-API/WP-API/issues/2532) that doesn't work in some cases. For the purposes of this demo, we're using the URL of a demo server that we're hosting ourselves. We can't make any guarantees what that server will return in the future.
+// written in a plain javascript form to make it more obvious
+function plainCoconutCurry = function (spices) {
+  return function (coconutMilk) {
+    return spices + coconutMilk
+  }
+}
 
-Lastly you'll notice that our new saga has a peculiar name: `fetchPostBySlugSaga`. This was done to avoid a naming conflict with the `fetchPostBySlug` action creator. It may be wise to follow the redux manual and name the action creator `requestPostBySlug` and the saga `fetchPostBySlug`. Regardless of your naming scheme, you will inevitably run into issues where your actions creators and sagas have similar names because they represent two parts of the same action.
+// you use it by calling it twice
+const myLunch = spicyCoconutCurry(sawdust)(water)
+```
+
+For this demo we're going to resort to using [lodash.memoize](https://www.npmjs.com/package/lodash.memoize). You may wish to read up on [how memoize works](https://lodash.com/docs#memoize). We're using lodash.memoize in addition to reselect because of how reselect works. You might also consider using [memoizee](https://github.com/medikoo/memoizee). Any memoize implementation will do. You might be tempted to simply use the [`defaultMemoize()`](https://github.com/reactjs/reselect#defaultmemoizefunc-equalitycheck--defaultequalitycheck) function from reselect directly, but it is also confusing.
 
 ```bash
 npm install --save lodash.memoize
@@ -1383,6 +1394,12 @@ export const rootSaga = watchActions({
 })
 ```
 
+*Note:* You may notice that we're not adding any additional reducers. The WP-API doesn't offer [a direct way to fetch a post by its slug](https://github.com/WP-API/WP-API/issues/456). Instead, we have to perform a filter search, which returns an array of results. This is actually beneficial for our app because it allows us to use the same reducer for receiving multiple posts as well as receiving a single post by slug.
+
+*Note:* You may notice that we're not using the demo URL below. The WP-API demo has a [peculiar CORS implementation](https://github.com/WP-API/WP-API/issues/2532) that doesn't work in some cases. For the purposes of this demo, we're using the URL of a demo server that we're hosting ourselves. We can't make any guarantees what that server will return in the future.
+
+*Note:* Lastly you'll notice that our new saga has a peculiar name: `fetchPostBySlugSaga`. This was done to avoid a naming conflict with the `fetchPostBySlug` action creator. It may be wise to follow the redux manual and name the action creator `requestPostBySlug` and the saga `fetchPostBySlug`. Regardless of your naming scheme, you will inevitably run into issues where your actions creators and sagas have similar names because they represent two parts of the same action.
+
 1. `getPostBySlug(state)(slug)` is a curried function. You might like [reading up on curried functions](https://www.sitepoint.com/currying-in-functional-javascript/). What we're doing is giving into the pressure of createSelector to only work directly with the state. Using `createSelector(dependentSelectors, computedSelector)` creates a function that only accepts the state and only passes the results of the `dependentSelectors` to the `computedSelector`. If you dig deeper into what createSelector is doing it becomes apparent.
 
   Here's an example of our selector that doesn't memoize anything. You might like to [experiment with this example](https://repl.it/CZ8G).
@@ -1400,16 +1417,26 @@ export const rootSaga = watchActions({
     // it's good practice to memoize a computed selector
     // because it's expensive to compute things over and over
     // especially if the result won't change until the state does
+    // here we're not memoizing anything
+
+    // this function returns a function
+    // the inner function actually returns our results
     const computedSelector = (posts) => (slug) =>
       posts.find(p => p.attributes.slug === slug)
 
-    // did you notice?
+
     // we're being tricky and returning a function from our computed selector
+    // when getPostBySlug(state) is called, we return the inner function
+    // conveniently the inner function is bound the the state
     return computedSelector(...dependentSelectors.map(s => s(state)))
   }
+
+  // We can use it like this:
+  const findPostBySlug = getPostBySlug(state)
+  const post = findPostBySlug(slug)
   ```
 
-  Here's an example where when memoize everything ourselves. You might like to [experiment with this example](https://repl.it/CZ8E/2).
+  Here's an example where we memoize everything ourselves. You might like to [experiment with this example](https://repl.it/CZ8E/2).
 
   ```js
   // ... psuedo code that memoizes stuff
