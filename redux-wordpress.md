@@ -1400,117 +1400,119 @@ export const rootSaga = watchActions({
 
 *Note:* Lastly you'll notice that our new saga has a peculiar name: `fetchPostBySlugSaga`. This was done to avoid a naming conflict with the `fetchPostBySlug` action creator. It may be wise to follow the redux manual and name the action creator `requestPostBySlug` and the saga `fetchPostBySlug`. Regardless of your naming scheme, you will inevitably run into issues where your actions creators and sagas have similar names because they represent two parts of the same action.
 
-1. `getPostBySlug(state)(slug)` is a curried function. You might like [reading up on curried functions](https://www.sitepoint.com/currying-in-functional-javascript/). What we're doing is giving into the pressure of createSelector to only work directly with the state. Using `createSelector(dependentSelectors, computedSelector)` creates a function that only accepts the state and only passes the results of the `dependentSelectors` to the `computedSelector`. If you dig deeper into what createSelector is doing it becomes apparent.
+### How getPostBySlug works
 
-  Here's an example of our selector that doesn't memoize anything. You might like to [experiment with this example](https://repl.it/CZ8G).
+`getPostBySlug(state)(slug)` is a curried function. You might like [reading up on curried functions](https://www.sitepoint.com/currying-in-functional-javascript/). What we're doing is giving into the pressure of createSelector to only work directly with the state. Using `createSelector(dependentSelectors, computedSelector)` creates a function that only accepts the state and only passes the results of the `dependentSelectors` to the `computedSelector`. If you dig deeper into what createSelector is doing it becomes apparent.
 
-  ```js
-  // ... psuedo code that does what createSelector does
+Here's an example of our selector that doesn't memoize anything. You might like to [experiment with this example](https://repl.it/CZ8G).
 
-  // this code doesn't memoize anything
+```js
+// ... psuedo code that does what createSelector does
 
-  // we need to pass state into our selector
-  export const getPostBySlug = (state) => {
-    // our computed selector can depend on a list of other selectors
-    const dependentSelectors = [getAll]
+// this code doesn't memoize anything
 
-    // it's good practice to memoize a computed selector
-    // because it's expensive to compute things over and over
-    // especially if the result won't change until the state does
-    // here we're not memoizing anything
+// we need to pass state into our selector
+export const getPostBySlug = (state) => {
+  // our computed selector can depend on a list of other selectors
+  const dependentSelectors = [getAll]
 
-    // this function returns a function
-    // the inner function actually returns our results
-    const computedSelector = (posts) => (slug) =>
-      posts.find(p => p.attributes.slug === slug)
+  // it's good practice to memoize a computed selector
+  // because it's expensive to compute things over and over
+  // especially if the result won't change until the state does
+  // here we're not memoizing anything
+
+  // this function returns a function
+  // the inner function actually returns our results
+  const computedSelector = (posts) => (slug) =>
+    posts.find(p => p.attributes.slug === slug)
 
 
-    // we're being tricky and returning a function from our computed selector
-    // when getPostBySlug(state) is called, we return the inner function
-    // conveniently the inner function is bound the the state
-    return computedSelector(...dependentSelectors.map(s => s(state)))
-  }
+  // we're being tricky and returning a function from our computed selector
+  // when getPostBySlug(state) is called, we return the inner function
+  // conveniently the inner function is bound the the state
+  return computedSelector(...dependentSelectors.map(s => s(state)))
+}
 
-  // We can use it like this:
-  const findPostBySlug = getPostBySlug(state)
-  const post = findPostBySlug(slug)
-  ```
+// We can use it like this:
+const findPostBySlug = getPostBySlug(state)
+const post = findPostBySlug(slug)
+```
 
-  Here's an example where we memoize everything ourselves. You might like to [experiment with this example](https://repl.it/CZ8E/2).
+Here's an example where we memoize everything ourselves. You might like to [experiment with this example](https://repl.it/CZ8E/2).
 
-  ```js
-  // ... psuedo code that memoizes stuff
+```js
+// ... psuedo code that memoizes stuff
 
-  // this code *does* memoize things
+// this code *does* memoize things
 
-  import memoize from 'lodash.memoize'
+import memoize from 'lodash.memoize'
 
-  // this is pretty much what createSelector does
-  // @see https://github.com/reactjs/reselect/blob/master/src/index.js
-  const createSelector2 = (dependentSelectors = [], computedSelector) => {
+// this is pretty much what createSelector does
+// @see https://github.com/reactjs/reselect/blob/master/src/index.js
+const createSelector2 = (dependentSelectors = [], computedSelector) => {
 
-    // we can stash these variables in the function scope
-    // because everything in a selector depends on the state
-    // this effectively memoizes our selector
-    let prevState
-    let prevSelectedValues
-    let result
+  // we can stash these variables in the function scope
+  // because everything in a selector depends on the state
+  // this effectively memoizes our selector
+  let prevState
+  let prevSelectedValues
+  let result
 
-    // we're "creating" a selector
-    // so we need to return a function
-    // a selector is a function
-    return (state) => {
+  // we're "creating" a selector
+  // so we need to return a function
+  // a selector is a function
+  return (state) => {
 
-      // we can easily track if the state has changed
-      if (state !== prevState) {
-        const selectedValues = dependentSelectors.map(s => s(state))
+    // we can easily track if the state has changed
+    if (state !== prevState) {
+      const selectedValues = dependentSelectors.map(s => s(state))
 
-        // we can even check if our dependentSelectors have changed
-        const hasChanged = prevSelectedValues !== undefined
-          && selectedValues.some((v, i) => v !== prevSelectedValues[i])
+      // we can even check if our dependentSelectors have changed
+      const hasChanged = prevSelectedValues !== undefined
+        && selectedValues.some((v, i) => v !== prevSelectedValues[i])
 
-        // we only need to re-compute our selector when the state changes
-        if (hasChanged || prevSelectedValues === undefined) {
+      // we only need to re-compute our selector when the state changes
+      if (hasChanged || prevSelectedValues === undefined) {
 
-          // memoize the result by stashing it in the parent scope
-          result = computedSelector(...selectedValues)
-        }
-
-        // stash the current state and selected values in the parent scope
-        prevState = state
-        prevSelectedValues = selectedValues
+        // memoize the result by stashing it in the parent scope
+        result = computedSelector(...selectedValues)
       }
 
-      return result
+      // stash the current state and selected values in the parent scope
+      prevState = state
+      prevSelectedValues = selectedValues
     }
+
+    return result
   }
+}
 
-  // here we're getting extra tricky
-  // createSelector2 memoized our selector based on the state
-  // but we need to also memoize based on the slug
-  // to do this we need to return a function from our selector
-  // this second function takes slug as an argument
-  // we need to memoize it ourselves
-  // this makes getPostBySlug a "curried" function
-  // you'd use it like this: getPostBySlug(state)(slug)
-  export const getPostBySlug = createSelector2(
-    [getAll],
-    (posts) => memoize((slug) => {
-      return posts.find(p => p.attributes.slug === slug)
-    })
-  )
-  ```
+// here we're getting extra tricky
+// createSelector2 memoized our selector based on the state
+// but we need to also memoize based on the slug
+// to do this we need to return a function from our selector
+// this second function takes slug as an argument
+// we need to memoize it ourselves
+// this makes getPostBySlug a "curried" function
+// you'd use it like this: getPostBySlug(state)(slug)
+export const getPostBySlug = createSelector2(
+  [getAll],
+  (posts) => memoize((slug) => {
+    return posts.find(p => p.attributes.slug === slug)
+  })
+)
+```
 
-  Finally, here's the version using createSelector.
+Finally, here's the version using createSelector.
 
-  ```js
-  import { createSelector } from 'reselect'
-  import memoize from 'lodash.memoize'
+```js
+import { createSelector } from 'reselect'
+import memoize from 'lodash.memoize'
 
-  export const getPostBySlug = createSelector(
-    [getAll],
-    (posts) => memoize((slug) => {
-      return posts.find(p => p.attributes.slug === slug)
-    })
-  )
-  ```
+export const getPostBySlug = createSelector(
+  [getAll],
+  (posts) => memoize((slug) => {
+    return posts.find(p => p.attributes.slug === slug)
+  })
+)
+```
