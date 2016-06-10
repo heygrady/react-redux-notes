@@ -23,7 +23,7 @@ We won't be using [node-uuid](https://github.com/broofa/node-uuid) for this exam
 Here's some commands for initializing a redux app and installing some commonly used modules.
 
 ```bash
-redux create posts-app
+redux new posts-app
 cd posts-app
 npm install
 npm install --save \
