@@ -5,6 +5,7 @@ Here are my notes from getting to know React Redux a lot better.
 1. Next we'll [build the Todo app](./react-redux-starter-kit-todos.md) from the manual with react-redux-starter-kit and redux-cli.
 1. After that we'll [use redux-saga](./redux-sagas-todos.md) to manage our asynchronous side effects.
 1. Then we'll make it work with a JSONAPI server for persisting todos to the server.
+1. Here's how to use this spec to [build a basic nav](./lets-build-a-nav.md) using the WordPress API.
 
 ### How did we get here?
 I've been a web developer for more than a decade. I've seen JavaScript take a massive leap forward several times over the years. First with [Prototype.js](http://prototypejs.org/) then [jQuery](https://jquery.com/) and more recently with [Angular](https://angularjs.org/) and [Ember](http://emberjs.com/). JavaScript has been maturing slowly for what seems like forever. But these days everyone is excited about the possibilities of ES6. And the premier way to build apps in with ES6 is [React-Redux](http://redux.js.org/docs/basics/UsageWithReact.html).
