@@ -1,4 +1,4 @@
-## New Component
+## New Container
 
 ```md
 - components/
@@ -7,7 +7,7 @@
   - SomeThingContainer.js
 ```
 
-## Component
+## Container
 
 ```js
 import { connect } from 'react-redux'
