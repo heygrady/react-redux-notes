@@ -4,15 +4,18 @@
 - routes/MyRoute
   - index.js
   - components/
-    - MyRouteLayout.js <-- Only when child routes exist
     - MyRouteView.js
     - SomeComponent.js
   - containers/
     - SomeComponentContainer.js
-  - modules/myRoute.js
+  - layouts/ <-- Only when child routes exist
+    - MyRouteLayout.js
+  - modules/
+    - myRoute.js
+  - routes/childRoute/ <-- Only when child routes exist
 ```
 
-## Route Index
+## Route Index (without child routes)
 
 `src/routes/MyRoute/index.js`
 
@@ -32,6 +35,107 @@ export default (store) => ({
     }, 'myRoute')
   }
 })
+```
+
+## Route Index (with child routes)
+
+`src/routes/MyRoute/index.js`
+
+```js
+import { injectReducer } from '../../store/reducers'
+
+export default (store) => ({
+  path : 'myRoute',
+  getIndexRoute(location, next) { <-- Necessary when nesting child routes
+    require.ensure([], (require) => {
+      const MyRouteView = require('./components/MyRouteView').default
+      next(null, { component: MyRouteView })
+    })
+  },
+  getComponent (nextState, cb) {
+    require.ensure([], (require) => {
+      const reducer = require('./modules/myRoute').default
+      const MyRouteLayout = require('./layouts/MyRouteLayout').default
+
+      injectReducer(store, { key: 'myRoute', reducer })
+
+      cb(null, MyRouteLayout)
+    }, 'myRoute')
+  },
+  childRoutes: [
+    childRoute(store) <-- Pass down store from parent to the child route
+  ]
+})
+```
+
+## Route Components
+`src/routes/MyRoute/components/MyRouteView.js`
+
+```js
+import React from 'react'
+import SomeComponent from './SomeComponent'
+
+export const MyRouteView = () => (
+  <div>
+    MyRouteView contents
+    <SomeComponent />
+  </div>
+)
+
+export default MyRouteView
+```
+
+`src/routes/MyRoute/components/SomeComponent.js`
+
+```js
+import React from 'react'
+
+export const SomeComponent = () => (
+  <div>
+    SomeComponent contents
+  </div>
+)
+
+export default SomeComponent
+```
+
+## Route Container
+`src/routes/MyRoute/containers/SomeComponentContainer.js`
+
+```js
+import { connect } from 'react-redux'
+import SomeComponent from '../components/SomeComponent'
+const mapStateToProps = (state, ownProps) => {
+  return {
+  }
+}
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+  return {
+  }
+}
+
+const SomeComponentContainer = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(SomeComponent)
+
+export default SomeComponentContainer
+```
+
+## Route Layout
+`src/routes/MyRoute/layouts/MyRouteLayout.js`
+
+```js
+import React from 'react'
+
+const MyRouteLayout = ({ children }) => (<div>{children}</div>)
+
+MyRouteLayout.propTypes = {
+  children: React.PropTypes.element.isRequired
+}
+
+export default MyRouteLayout
 ```
 
 ## Route Module
