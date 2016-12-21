@@ -1,13 +1,4 @@
-## New Container
-
-```md
-- components/
-  - SomeThing.js
-- containers/
-  - SomeThingContainer.js
-```
-
-## Container
+## Standard container
 
 ```js
 import { connect } from 'react-redux'

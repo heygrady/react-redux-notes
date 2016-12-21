@@ -1,4 +1,5 @@
-## New module with single reducer
+## Simple module with single reducer
+A simple module keeps everything in a single file. It must export a default reducer. Simple modules are useful when your module doesn't do very much. Any reasonably complex module should be exploded into multiple files. However, in cases where your module is very small, it's just fine to keep it in a single file. As your app develops you'll notice that your simple module gets too big and unwieldy&mdash;when it's getting too full it's time to explode it.
 
 ```js
 // import { combineReducers } from 'redux' // <-- for combining multiple reducers
@@ -84,11 +85,6 @@ export const anotherReducer = handleActions({
     }
   }
 }, { anotherThing: false })
-
-// export default reducer
-// NOTE: uncomment if you only have one reducer
-// export default routeNameReducer
-
 
 export default combineReducers({
  routeName: routeNameReducer,

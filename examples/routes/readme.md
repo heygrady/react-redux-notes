@@ -9,7 +9,7 @@
     - SomeComponent.js
   - containers/
     - SomeComponentContainer.js
-  - modules/myRoute.js
+  - modules/myRoute/index.js <-- should return a reducer by default
 ```
 
 ## Route Index
@@ -28,52 +28,8 @@ export default (store) => ({
 
       injectReducer(store, { key: 'myRoute', reducer })
 
-      cb(null, MyRouteLayout)
+      cb(null, MyRouteView)
     }, 'myRoute')
   }
 })
-```
-
-## Route Module
-
-`src/routes/MyRoute/modules/myRoute.js`
-
-```js
-// import { combineReducers } from 'redux'
-import { createAction, handleActions } from 'redux-actions'
-
-// make selectors
-export const makeSelectors = (selector) => ({
-  selectSomeThing: (state, ...args) => selectSomeThing(selector(state), ...args)
-})
-
-// selectors
-export const selectSomeThing = (state) => state.someThing
-
-// constants
-export const MY_ROUTE_ACTION = 'MY_ROUTE_ACTION'
-
-// action creators
-export const myRouteAction = createAction(MY_ROUTE_ACTION)
-
-// reducers
-export const myRouteReducer = handleActions({
-  [MY_ROUTE_ACTION]: (state, action) => {
-    const { payload } = action
-    return {
-      ...state,
-      someThing: !!state.someThing,
-      payload
-    }
-  }
-}, { someThing: false })
-
-// export default reducer
-export default myRouteReducer
-
-// NOTE: uncomment to combine all of your module's reducers
-// export default combineReducers({
-//  myRouteReducer
-// })
-
 ```
