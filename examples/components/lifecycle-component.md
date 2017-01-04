@@ -6,13 +6,13 @@ import React, { PropTypes, Component } from 'react'
 
 class SecondThing extends Component {
   componentWillMount () {
-    const { onMount } = this.props
-    onMount()
+    const { load } = this.props // <-- you can use props normally
+    load() // <-- you'd use this to dispatch an action when the component loads
   }
 
-  componentWillUnmount () {
-    const { onBeforeUnmount } = this.props
-    onBeforeUnmount()
+  componentWillUnmount () { // <-- there are
+    const { unload } = this.props
+    unload()
   }
 
   render () {
@@ -20,7 +20,7 @@ class SecondThing extends Component {
 
     return (
       <div className='SecondThing'>
-        <h2>Name</h2>
+        <h2>{name}</h2>
         {children}
       </div>
     )
@@ -29,7 +29,9 @@ class SecondThing extends Component {
 
 SecondThing.propTypes = {
   name: PropTypes.string.isRequired,
-  children: PropTypes.node
+  children: PropTypes.node,
+  load: PropTypes.func.isRequired,
+  unload: PropTypes.func.isRequired
 }
 
 export default SecondThing
