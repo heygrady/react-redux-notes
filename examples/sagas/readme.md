@@ -20,31 +20,30 @@ import createSagaMiddleware from 'redux-saga'
 import { testSaga } from 'modules/test' // <-- import our test saga
 
 export const sagaMiddleware = createSagaMiddleware()
-export const runSaga = (saga) => sagaMiddleware.run(saga)
+export const runSaga = saga => sagaMiddleware.run(saga)
 
 // use injectSaga() to add a saga from a route
-// usage: injectSaga( name: 'My Unique Name', saga: someGenerator )
 const tasks = {}
-export const injectSaga = ({ name, saga }) => {
-  let { task, prevSaga } = tasks[name] || {}
+export const injectSaga = ({ key, saga }) => {
+  let { task, prevSaga } = tasks[key] || {}
 
   if (task && prevSaga !== saga) {
-    cancelTask(name)
+    cancelTask(key)
     task = undefined
   }
 
   if (!task || !task.isRunning()) {
-    tasks[name] = {
+    tasks[key] = {
       task: sagaMiddleware.run(saga),
       prevSaga: saga
     }
   }
 }
 
-export const cancelTask = (name) => {
-  const { task } = tasks[name]
+export const cancelTask = (key) => {
+  const { task } = tasks[key]
   if (task) { task.cancel() }
-  delete tasks[name]
+  delete tasks[key]
 }
 
 export function * rootSaga () {
@@ -106,11 +105,12 @@ export const watchActions = (sagas) => {
 }
 
 ```
+## Usage
 
 ### Usage of watchActions
 You would use `watchActions` similalrly to `handleActions`.
 
-Create the file `src/modules/test.js` with the following content.
+**Create the file `src/modules/test.js` with the following content.**
 
 ```js
 import { createAction } from 'redux-actions'
@@ -131,5 +131,31 @@ export const testSaga = watchActions({
 })
 
 // NOTE: in a container, dispatch(someAction()) --> worked!
+
+```
+
+### Usage of injectSaga
+Typically you would use `injectSaga` in a route. Below you can see a route that lazy-loads the reducer and the saga. In the following example we're presuming that the `modules/myRoute` exports its reducer by default and exports a `rootSaga` generator function. Compare this to a [standard route](../routes/standard-route.md).
+
+**Create the file `src/routes/MyRoute/index.js` with the following content.**
+
+```js
+import { injectReducer } from 'store/reducers'
+import { injectSaga } from 'store/sagas' // <--
+
+export default (store) => ({
+  path : 'myRoute',
+  getComponent (nextState, cb) {
+    require.ensure([], (require) => {
+      const { default: reducer, rootSaga: saga } = require('./modules/myRoute') // <--
+      const MyRouteView = require('./components/MyRouteView').default
+
+      injectReducer(store, { key: 'myRoute', reducer })
+      injectSaga({ key: 'myRoute', saga }) // <--
+
+      cb(null, MyRouteView)
+    }, 'myRoute')
+  }
+})
 
 ```
