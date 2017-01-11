@@ -8,8 +8,10 @@ You need to install redux-saga
 yarn add redux-saga
 ```
 
-## Add store/saga
+## Add store/sagas
 We want to work with sagas similarly to how we work with reducers. We need to add a `src/store/sagas.js` file.
+
+**Create the file `src/store/sagas.js` with the following content.**
 
 ```js
 import createSagaMiddleware from 'redux-saga'
@@ -56,6 +58,9 @@ export default sagaMiddleware
 ```
 
 ## Update store/createStore
+We need to add our sagas to `src/store/createStore.js`. This is no different than adding any other middleware. Compare to the starter kit version of [`src/store/createStore.js`](https://github.com/davezuko/react-redux-starter-kit/blob/master/src/store/createStore.js).
+
+**Update the file `src/store/createStore.js` with the following content.**
 
 ```js
 // ...
@@ -81,7 +86,7 @@ export default (initialState = {}) => {
 ## Add utils/sagas
 We want to add some utils that make working with sagas more like working with `redux-actions`. We're modelling `watchActions` after `handleActions`.
 
-Create the file `src/utils/sagas.js` with the following content.
+**Create the file `src/utils/sagas.js` with the following content.**
 
 ```js
 import { takeEvery } from 'redux-saga/effects'
