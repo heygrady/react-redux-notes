@@ -1,5 +1,7 @@
 # Using WordPress with react-redux
 
+**NOTE: Some examples are outdated. The react-redux-starter-kit and the Wordpress API have changed since this was first written.**
+
 We can use the [WP-API WordPress plugin](http://v2.wp-api.org/) to fetch WordPress data over an API. This allows you build a react-redux application as you against the API &mdash; meaning you don't have to use WordPress or PHP as your rendering engine. In our case we intend to use react-redux as our rendering engine. We're only going to be using WordPress as a data store and an admin tool. Of course, this approach means that your frontend site won't necessarily look very much like a WordPress theme. If you really love WordPress themes, then this probably isn't for you. If, however, you prefer to build your website using [state-of-the-art frontend best practices](https://medium.com/javascript-and-opinions/state-of-the-art-javascript-in-2016-ab67fc68eb0b)... keep reading.
 
 Building a fronted app against the API doesn't require using react-redux. You could use use the WP-API with an Ember, Angular or any other frontend framework.

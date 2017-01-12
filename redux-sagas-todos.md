@@ -1,4 +1,7 @@
 # redux-saga Todos Tutorial
+
+**NOTE: Some examples are outdated. The react-redux-starter-kit has changed since this was first written.**
+
 In this tutorial we're going to implement [redux-saga](http://yelouafi.github.io/redux-saga/) in the same [Todos app from the previous document](./react-redux-starter-kit-todos.md).
 
 The power of sagas becomes aparent the moment you try to hook redux to an API, which we'll be doing in the next step. In this tutorial we won't be writing sagas to fetch data from an API. This time around we're going to get sagas integrated into our app so that we can focus on the API portion of it later. So, why should you read this? Because setting up redux-saga with react-redux-starter-kit isn't obvious and it's important to cover the fundamentals of sagas in depth first. If you try to use redux-saga for the first time it can be intimidating because most tutorials jump right into [using redux-saga to interact with an API](https://github.com/yelouafi/redux-saga#usage-example). We're going to work up to it slowly.
@@ -47,7 +50,7 @@ You use it like this: [`sagaMiddleware.run(saga)`](http://yelouafi.github.io/red
 
 A `saga` is just a function. The saga middleware runs it after the next action is dispatched in your redux app. Your saga function recieves `action` as the first argument. Redux-saga works a little differently than other middleware because you have to manage when your sagas are run. In practice this is no more difficult than managing reducers.
 
-Usually you configure your sagas to "stay alive" and keep listening for more actions, but you don't have to do it that way. 
+Usually you configure your sagas to "stay alive" and keep listening for more actions, but you don't have to do it that way.
 
 Here's an example of a saga that's only configured to run once. We'll see later that the whole point of your saga is to yield effects. When you use the `sagaMiddleware` your saga will be run when the next action is dispatched. It's important to note that usually your saga will only be run once. However it's common to use a watcher saga to keep responding to future actions. Although you don't have to use a watcher, it's the most common way you'll use the saga middelware. We'll see a little further down what watching for specific actions looks like.
 
@@ -68,7 +71,7 @@ sagaMiddleware.run(mySaga)
 
 In a normal middleware like redux-thunk the asynchronous functionality gets baked directly into your action. In redux-saga it's different. When you watch a saga with `takeEvery`, **the *saga* is the *target* of an action**, more like a reducer. The `sagaMiddleware` is the bridge between dispatched actions and your saga. If you find yourself working with the sagaMiddleware all the time you're probably doing something pretty advanced. Usually you'll want to run your sagas as part of your route. We'll see that in practice later on.
 
-What's important is that **your saga is just a function... a *generator* function.** 
+What's important is that **your saga is just a function... a *generator* function.**
 
 Here's an example of using the `takeEvery()` function from redux-saga to create a watcher for our saga. You use takeEvery to create a watcher for your saga. This ensures that our saga is run when a specific action is dispatched. It also ensures that your saga will keep running to capture future actions. You should read up on [how `takeEvery()` works](http://yelouafi.github.io/redux-saga/docs/api/index.html#takeeverypattern-saga-args).
 
@@ -103,7 +106,7 @@ const fetchSomething = () => {
     } catch(error) {
       reject(error)
     }
-  }) 
+  })
 }
 
 // and we use a saga to fetch something when an action is dispatched
@@ -183,7 +186,7 @@ function walkTask(task, result = {}) {
   // iterate over the generator object until it is done
   while (!result.done) {
     result = task.next(result.value) // <-- call next() with the previously yielded value
-    
+
     // redux-saga waits for promises to finish
     if (typeof result.value.then === 'function') {
 
@@ -204,9 +207,9 @@ walkTask(task)
 *Note:* The `walkTask()` function above is just a toy example. Redux-saga actually analyzes the effect you yield and does some magic. However, once redux-saga is done with its internal magic it simply calls `next()` on your saga with the result of the previous effect.
 
 ### Managing async actions with a saga
-Redux-saga allows you to chain actions in an easy-to-follow way. As a core requirement **redux-saga expects you to yield an effect**. Effects help the `sagaMiddleware` walk your saga. Thankfully redux-saga comes with helper functions that make it seamless to [create effects](http://yelouafi.github.io/redux-saga/docs/api/index.html#effect-creators). In practice you'll use [`put()`](http://yelouafi.github.io/redux-saga/docs/api/index.html#putaction) -- essentially an alias for `dispatch()` -- to dispatch actions. And you'll use [`call()`](http://yelouafi.github.io/redux-saga/docs/api/index.html#callfn-args) to call a function that does something asynchronously, either returning a generator or a promise. 
+Redux-saga allows you to chain actions in an easy-to-follow way. As a core requirement **redux-saga expects you to yield an effect**. Effects help the `sagaMiddleware` walk your saga. Thankfully redux-saga comes with helper functions that make it seamless to [create effects](http://yelouafi.github.io/redux-saga/docs/api/index.html#effect-creators). In practice you'll use [`put()`](http://yelouafi.github.io/redux-saga/docs/api/index.html#putaction) -- essentially an alias for `dispatch()` -- to dispatch actions. And you'll use [`call()`](http://yelouafi.github.io/redux-saga/docs/api/index.html#callfn-args) to call a function that does something asynchronously, either returning a generator or a promise.
 
-[Redux-saga has a glossary](http://yelouafi.github.io/redux-saga/docs/Glossary.html) that comes in handy. 
+[Redux-saga has a glossary](http://yelouafi.github.io/redux-saga/docs/Glossary.html) that comes in handy.
 
 ##### A saga
 Here's the async example from above rewritten as a saga:
@@ -247,7 +250,7 @@ Redux-saga is middleware. When you're working with Redux you need middleware to 
 ### Add redux-saga to createStore
 We want to reuse the clever way that react-redux-starter-kit loads the reducers for a route using `injectReducers()`. You can read about it in detail [in the previous note](react-redux-starter-kit-todos.md#route-srcroutestodosindexjs). At a high level, react-redux-starter-kit provides an example of using Webpack to break routes into dynamic chunks. Part of that functionality involves loading the reducers for that route. This is helpful when you're using the [fractal project structure](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure).
 
-Thankfully redux-saga has [support for dynamically loading sagas](https://github.com/yelouafi/redux-saga/releases/tag/v0.1.0) in a similar fashion to the `injectReducer()` method that comes with react-redux-starter-kit. You may like to read about [how to dynamically load reducers](https://github.com/reactjs/redux/issues/37). 
+Thankfully redux-saga has [support for dynamically loading sagas](https://github.com/yelouafi/redux-saga/releases/tag/v0.1.0) in a similar fashion to the `injectReducer()` method that comes with react-redux-starter-kit. You may like to read about [how to dynamically load reducers](https://github.com/reactjs/redux/issues/37).
 
 *Note:* You may want to read about [the need for dynamically loading sagas](https://github.com/yelouafi/redux-saga/issues/76).
 
@@ -460,14 +463,14 @@ export const injectSaga = ({ name, saga }) => {
 ```
 
 #### Watching for actions
-When you're building a module you'll want to register your saga to run when certain actions are dispatched. This is very similar to working with a reducer, where you want your reducer to handle certain actions. For reducers we're using [`handleActions()`](https://github.com/acdlite/redux-actions#handleactionsreducermap-defaultstate) from redux-actions. In order to get our sagas to watch for actions we're going to be doing something similar. Under the hood the `watchActions()` function mimics the redux-saga textbook example of creating a watcher saga. 
+When you're building a module you'll want to register your saga to run when certain actions are dispatched. This is very similar to working with a reducer, where you want your reducer to handle certain actions. For reducers we're using [`handleActions()`](https://github.com/acdlite/redux-actions#handleactionsreducermap-defaultstate) from redux-actions. In order to get our sagas to watch for actions we're going to be doing something similar. Under the hood the `watchActions()` function mimics the redux-saga textbook example of creating a watcher saga.
 
 (You can see examples of creating a watcher saga and exporting a rootSaga in the [beginners tutorial](http://yelouafi.github.io/redux-saga/docs/introduction/BeginnerTutorial.html).)
 
 ```js
 // ... example of using watchActions() inside a module
 
-// ... 
+// ...
 import { watchActions } from '../store/sagas.js'
 
 // constants
@@ -540,7 +543,7 @@ injectSaga({ name: 'todosApp', saga })
 ```
 
 ## About Modules
-Before we try to implement a saga in our sample app it's important to go over what a generic module looks like. A module is the redux version of a "model" from a traditional MVC app. Of course it's not *exactly* a model but you can see that all of the main pieces are there. Typically a model has getters and setters. In practice you will probably be organizing your module to look similar to something like an [Ember Data Model](http://emberjs.com/api/data/classes/DS.Model.html). 
+Before we try to implement a saga in our sample app it's important to go over what a generic module looks like. A module is the redux version of a "model" from a traditional MVC app. Of course it's not *exactly* a model but you can see that all of the main pieces are there. Typically a model has getters and setters. In practice you will probably be organizing your module to look similar to something like an [Ember Data Model](http://emberjs.com/api/data/classes/DS.Model.html).
 
 If you're following my anology, you use a selector in place of a getter. You should use selectors in the `mapStateToProps` function of a container. A selector reads a value from the store. Technically you can store data in redux however you want and there are numerous ways to read data back. Usually you create a selector as a simple function like `const getAllTodos = (state) => state.todosApp.todos.data`.
 
@@ -674,7 +677,7 @@ If you're skimming for changes we're going to be adding a slight wait after you 
 
 We'll go through this in detail below.
 
-##### `src/routes/Todos/modules/todos.js` 
+##### `src/routes/Todos/modules/todos.js`
 
 ```js
 import { combineReducers } from 'redux'
@@ -948,7 +951,7 @@ import { v4 as uuid } from 'node-uuid'
 // constants
 
 // we're adding a new async constant
-export const ADD_TODO_ASYNC = 'ADD_TODO_ASYNC' 
+export const ADD_TODO_ASYNC = 'ADD_TODO_ASYNC'
 
 // we don't need to export these constants if we don't use them outside this file
 const ADD_TODO = 'ADD_TODO'
@@ -1069,7 +1072,7 @@ Here's the more complete version of using our new actions in a container. In the
 import { addTodoAsync } from '../modules/todos'
 
 let AddTodo = ({ dispatch }) => {
-  // ... 
+  // ...
 
   const onSubmit = e => {
     // ...
@@ -1166,5 +1169,3 @@ Todo.propTypes = {
 
 export default Todo
 ```
-
-

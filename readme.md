@@ -64,7 +64,7 @@ One thing to note is that the files in your project are all imported relative to
 - Don't bother with [alternative package managers](http://andrewhfarmer.com/javascript-frontend-package-managers/).
 - Don't worry about code that works in Node vs. The Browser. If you're trying to write universal code that runs in the browser and on the server remember this simple rule: **all JavaScript code is universal** (with very few exceptions). When in doubt, use functions you can find on [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript).
 - The one big exception is, *duh*, the [Node-specific APIs](https://nodejs.org/dist/latest/docs/api/)! The Node-specific APIs usually won't work in the browser because they're for working with the file system or the operating system (that's a security issue in browsers). However, the vast majority of what Node offers is powered by [V8](https://developers.google.com/v8/), the same JavaScript engine used in Chrome. *Note:* If you're constantly running into issues where your code isn't working in a browser because it's Node-specific... you are probably doing something *very wrong*.
-- If you're trying to evaluate if a package is likely to work for your project a good rule of thumb is "does it work with the file system or not?" That's usually a good filter. Some NPM packages are clearly designed to work on the server and they're usually easy to spot. 
+- If you're trying to evaluate if a package is likely to work for your project a good rule of thumb is "does it work with the file system or not?" That's usually a good filter. Some NPM packages are clearly designed to work on the server and they're usually easy to spot.
 
 ## Getting Started with the Starter Kit
 What you may not realize is that you *must* watch the videos before doing anything with React-Redux. You have to watch the videos before you can even read the manual. **If you haven't watched the videos you shouldn't be reading this right now!**
@@ -163,12 +163,12 @@ export default Link
 
   ```jsx
   //...
-  
+
   // return a span if active is truthy
   if (active) {
     return <span>{children}</span>
   }
-  
+
   // otherwise return an a[href]
   return <a href="#">{children}</a>
 
@@ -181,7 +181,7 @@ export default Link
   // the onClick prop comes from the outside
   const Link = ({ active, children, onClick }) => {
     //...
-    
+
     // React allows JSX elements to declare onCLick attributes
     // @see https://facebook.github.io/react/docs/events.html#supported-events
     return (
@@ -249,7 +249,7 @@ import React, { Component, PropTypes } from 'react'
 // create a class component
 // - use an es6 class
 class DumbComponent extends Component {
-  
+
   // commonly you are using a class
   // to fire an action when the component mounts
   // or hook up DOM events that are hard to express inline
@@ -257,7 +257,7 @@ class DumbComponent extends Component {
   componentDidMount() {
     this.props.fetchInitialState()
   }
-  
+
   // you need to define a render function
   render() {
 
@@ -432,7 +432,7 @@ Let's dig into what's going on here:
   // create an action creator
   // @see https://github.com/acdlite/redux-actions#createactiontype-payloadcreator--identity-metacreator
   export const setVisibilityFilter = createAction(SET_VISIBILITY_FILTER)
-  
+
   // action creators are super simple
   console.log( setVisibilityFilter )
   /* -->
@@ -449,7 +449,7 @@ Let's dig into what's going on here:
   // but actions are what action creators return
   // an action is just an object with a type and a payload
   const action = setVisibilityFilter('some string')
-  
+
   console.log(action)
   // --> { type: 'SET_VISIBILITY_FILTER', payload: 'some string' }
   ```
@@ -474,7 +474,7 @@ Let's dig into what's going on here:
   export const visibilityFilter = handleActions({
     [SET_VISIBILITY_FILTER]: (state, { payload }) => payload
   }, 'SHOW_ALL')
-  
+
   // a reducer is really simple
   console.log(visibilityFilter);
   /* -->

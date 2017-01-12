@@ -1,4 +1,7 @@
 # Using JSONAPI Server with react-redux-starter-kit
+
+**NOTE: Some examples are outdated. The react-redux-starter-kit has changed since this was first written.**
+
 This document covers the creation of a simple JSONAPI server for use with [our example todos app](./react-redux-starter-kit-todos.md). We're going to use the excellent [jsonapi-server](https://github.com/holidayextras/jsonapi-server) to easily manage our API and ensure it's fully conforming with the [JSON API spec](http://jsonapi.org/).
 
 Of course you can use any JSON format that suits the needs of your project but JSON API has become the defacto standard in the [Ember](http://emberjs.com/blog/2015/06/18/ember-data-1-13-released.html) and [Rails](https://wyeworks.com/blog/2015/4/20/rails-api-is-going-to-be-included-in-rails-5/) communities. You can see that there are already many [implementations of the JSON API spec](http://jsonapi.org/implementations/). This makes it attractive for other platforms because your projects will instantly be compatible with other tools. Most frameworks tend to follow the Rails community's lead.
@@ -92,7 +95,7 @@ console.log(`Server listening on http://localhost:${jsonApi._apiConfig.port}${js
 ```
 
 ## Adding a resource
-We need to make a resource file. Helpfully, `jsonapi-server` makes it easy to create resources with default data using the `examples` property. You can learn more about defining resources in the [ resource docs](https://github.com/holidayextras/jsonapi-server/blob/master/documentation/resources.md). 
+We need to make a resource file. Helpfully, `jsonapi-server` makes it easy to create resources with default data using the `examples` property. You can learn more about defining resources in the [ resource docs](https://github.com/holidayextras/jsonapi-server/blob/master/documentation/resources.md).
 
 **A resource describes an object and its relationships.**
 

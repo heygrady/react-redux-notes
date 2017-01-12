@@ -1,4 +1,7 @@
 # React Redux Starter Kit Todos Tutorial
+
+**NOTE: Some examples are outdated. The react-redux-starter-kit has changed since this was first written.**
+
 This is an example of using [react-redux-starter-kit](https://github.com/davezuko/react-redux-starter-kit) and [redux-cli](https://github.com/SpencerCDixon/redux-cli) to replicate [the Todos app from the Redux manual](http://redux.js.org/docs/basics/ExampleTodoList.html).
 
 We'll be using redux-cli but it doesn't do very much yet. I'll leave notes on how I wish the CLI worked because the CLI doesn't doesn't yet support the [fractal project-structure](https://github.com/davezuko/react-redux-starter-kit/wiki/Fractal-Project-Structure). This is partially because the [default blueprints included with react-redux-starter-kit](https://github.com/davezuko/react-redux-starter-kit/tree/master/blueprints) don't yet include routes. And because [you can't use a `--path` option](https://github.com/SpencerCDixon/redux-cli/issues/72) with redux-cli yet. It's probably worse that *components*, *containers* and *modules* are called *dumb*, *smart* and *duck* in the default blueprints. Thankfully we can fix that ourselves for our own projects.
@@ -109,7 +112,7 @@ mkdir -p tests/routes/Todos/components
 touch tests/routes/Todos/components/TodosView.spec.js
 touch tests/routes/Todos/index.spec.js
 
-# this doesn't work yet 
+# this doesn't work yet
 redux g route Todos
 ```
 
@@ -145,7 +148,7 @@ It's important to pay attention to what's going on here:
 
   ```js
   //..
-  
+
   // export a function that returns a react-router config object
   export default (store) => ({
     path: 'todos', // <-- this shows up in the URL
@@ -175,7 +178,7 @@ It's important to pay attention to what's going on here:
     }
   })
   ```
-  
+
   *Note:* If you feel like you don't need code splitting you can simplify your route significantly
 
   ```js
@@ -244,7 +247,7 @@ It's important to pay attention to what's going on here:
 
 ```js
 export default (store) => ({ // <-- am I a route creator?
-  // ... 
+  // ...
 })
 ```
 
@@ -287,7 +290,7 @@ Here we need to add a `Link` to our `/todos` route. What you put in `<Link to='/
 
 *Note:* Components that are not specific to a particular route, like the `Header` component, should be stored in the `src/components` folder.
 
-*Note:* If you look you'll notice that the `Header` component is stored in a folder, like `src/components/Header/Header.js`. You'll also see `src/components/Header/index.js`. The index file only exists as a convenience. It is a standard in Node to create an index file for a directory so that a developer can simply use `import Header from './components/Header'`. Why put the component in a folder? You'll see that the header has a `Header.scss` file right there. You might conceivably have other files related to this component. For instance, developers commonly add an `assets/` folder inside a component for storing assets that are specific to this component alone. 
+*Note:* If you look you'll notice that the `Header` component is stored in a folder, like `src/components/Header/Header.js`. You'll also see `src/components/Header/index.js`. The index file only exists as a convenience. It is a standard in Node to create an index file for a directory so that a developer can simply use `import Header from './components/Header'`. Why put the component in a folder? You'll see that the header has a `Header.scss` file right there. You might conceivably have other files related to this component. For instance, developers commonly add an `assets/` folder inside a component for storing assets that are specific to this component alone.
 
 We need to add a link to our route to the header nav.
 
@@ -825,10 +828,3 @@ Todo.propTypes = {
 
 export default Todo
 ```
-
-
-
-
-
-
-
